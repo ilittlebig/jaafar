@@ -2,10 +2,10 @@
   import { z } from "zod";
   import { superForm, setError } from "sveltekit-superforms";
   import { zodClient } from "sveltekit-superforms/adapters";
+  import { handleSignIn } from "$lib/services/auth-service";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
-  import { ForgotPasswordDialog } from "$lib/components/dialogs/forgot-password-dialog";
-  import { SignUpDialog } from "$lib/components/dialogs/sign-up-dialog";
+  import { ForgotPasswordDialog, SignUpDialog } from "$lib/components/dialogs/auth-dialogs";
   import LightSwitch from "$lib/components/light-switch.svelte";
   import * as Form from "$lib/components/ui/form";
 
@@ -20,17 +20,22 @@
       }, { message: "Please enter a password" }),
   })
 
-  const handleValidForm = form => {
-    setError(form, "email", "error message");
-  }
+  const handleValidForm = async form => {
+    const formData = form.data;
+    try {
+      await handleSignIn({ username: formData.email, password: formData.password });
+    } catch (err) {
+      setError(form, "email", err.message);
+    }
+  };
 
   const form = superForm({}, {
     SPA: true,
     resetForm: false,
     validators: zodClient(loginSchema),
-    onUpdate({ form }) {
+    async onUpdate({ form }) {
       if (!form.valid) return;
-      handleValidForm(form);
+      await handleValidForm(form);
     }
   });
 

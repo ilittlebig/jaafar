@@ -12,7 +12,7 @@
   const schema = z.object({
     email: z
       .string({ required_error: "Please enter an email" })
-      .email("Please enter a valid email"),
+      .email("Invalid email address"),
   })
 
   const form = superForm(data, {
