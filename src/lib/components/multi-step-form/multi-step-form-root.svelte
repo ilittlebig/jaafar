@@ -23,13 +23,13 @@
 
   const onUpdated = ({ form: f }) => {
     if (!f.valid) return;
-    data = $formData;
+    $data = $formData;
     nextPage();
   };
 
   const createForm = step => {
     const schema = steps[step].schema;
-    const newForm = superForm(data, {
+    const newForm = superForm($data, {
       SPA: true,
       resetForm: false,
       validators: zodClient(schema),

@@ -7,16 +7,17 @@
   export let formData;
 </script>
 
-<Form.Field name="url" class="space-y-1" {form}>
+<Form.Field name="tasks" class="space-y-1" {form}>
   <Form.Control let:attrs>
-    <Form.Label>Url</Form.Label>
+    <Form.Label>Tasks</Form.Label>
     <Input
-      id="url"
-      placeholder="Enter an URL"
-      bind:value={$formData.url}
+      id="tasks"
+      placeholder="Enter an amount"
+      bind:value={$formData.tasks}
       {...attrs}
       {disabled}
     />
   </Form.Control>
+  <Form.Description>Must be a value between 1-250.</Form.Description>
   <Form.FieldErrors />
 </Form.Field>
