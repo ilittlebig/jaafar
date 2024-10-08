@@ -1,24 +1,13 @@
 <script>
-  import { z } from "zod";
   import { superForm, setError } from "sveltekit-superforms";
   import { zodClient } from "sveltekit-superforms/adapters";
+  import { loginSchema } from "$lib/schemas/login-schemas";
   import { handleSignIn } from "$lib/services/auth-service";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
   import { ForgotPasswordDialog, SignUpDialog } from "$lib/components/dialogs/auth-dialogs";
   import LightSwitch from "$lib/components/light-switch.svelte";
   import * as Form from "$lib/components/ui/form";
-
-  const loginSchema = z.object({
-    email: z
-      .string({ required_error: "Please enter an email" })
-      .email("Invalid email address"),
-    password: z
-      .string({ required_error: "Please enter a password" })
-      .refine(val => {
-        return val !== undefined && val !== null && val.length > 0;
-      }, { message: "Please enter a password" }),
-  })
 
   const handleValidForm = async form => {
     const formData = form.data;
@@ -32,6 +21,7 @@
   const form = superForm({}, {
     SPA: true,
     resetForm: false,
+    clearOnSubmit: "errors",
     validators: zodClient(loginSchema),
     async onUpdate({ form }) {
       if (!form.valid) return;
@@ -39,7 +29,7 @@
     }
   });
 
-  const { form: formData, enhance } = form;
+  const { form: formData, enhance, submitting } = form;
 </script>
 
 <div class="flex w-full h-screen items-center justify-center overflow-hidden">
@@ -47,7 +37,7 @@
     <LightSwitch />
   </div>
 
-  <div class="w-full grid grid-cols-2 min-h-[720px]">
+  <div class="w-full grid lg:grid-cols-2 min-h-[720px]">
     <div class="flex items-center justify-center py-12">
       <div class="mx-auto grid w-[350px] gap-6">
         <div class="grid gap-2 text-center">
@@ -88,7 +78,7 @@
             <Form.FieldErrors />
           </Form.Field>
 
-          <Button type="submit" class="w-full">
+          <Button type="submit" class="w-full" disabled={$submitting}>
             Login
           </Button>
         </form>
@@ -100,7 +90,7 @@
       </div>
     </div>
 
-    <div class="bg-muted">
+    <div class="bg-muted hidden lg:block">
       <img
         src="/images/placeholder.svg"
         alt="placeholder"

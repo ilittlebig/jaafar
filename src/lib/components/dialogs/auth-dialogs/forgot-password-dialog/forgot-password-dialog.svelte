@@ -1,27 +1,34 @@
 <script>
-  import { z } from "zod";
-  import { superForm } from "sveltekit-superforms";
+  import { superForm, setError } from "sveltekit-superforms";
   import { zodClient } from "sveltekit-superforms/adapters";
+  import { usernameSchema } from "$lib/schemas/forgot-password-schemas";
+  import { handleResetPassword } from "$lib/services/auth-service";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
   import * as Form from "$lib/components/ui/form";
   import * as Dialog from "$lib/components/ui/dialog";
 
-  const data = { email: undefined };
+  const handleValidForm = async form => {
+    const formData = form.data;
+    try {
+      await handleResetPassword({ username: formData.email });
+    } catch (err) {
+      setError(form, "email", err.message);
+    }
+  }
 
-  const schema = z.object({
-    email: z
-      .string({ required_error: "Please enter an email" })
-      .email("Invalid email address"),
-  })
-
-  const form = superForm(data, {
+  const form = superForm({}, {
     SPA: true,
     resetForm: false,
-    validators: zodClient(schema),
+    clearOnSubmit: "errors",
+    validators: zodClient(usernameSchema),
+    async onUpdate({ form }) {
+      if (!form.valid) return;
+      await handleValidForm(form);
+    }
   });
 
-  const { form: formData, enhance } = form;
+  const { form: formData, enhance, submitting } = form;
 </script>
 
 <Dialog.Root>
@@ -60,7 +67,7 @@
       </Form.Field>
 
       <Dialog.Footer>
-        <Button variant="outline">
+        <Button variant="outline" disabled={$submitting}>
           Cancel
         </Button>
         <Button type="submit">
