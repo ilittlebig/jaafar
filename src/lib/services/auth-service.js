@@ -9,6 +9,7 @@ import {
   AuthBuddy,
   signIn,
   resetPassword,
+  confirmResetPassword,
 } from "auth-buddy";
 import {
   PUBLIC_USER_POOL_ID,
@@ -19,19 +20,9 @@ import {
  *
  */
 
-const handleNextStep = nextStep => {
-  console.log(nextStep);
-  switch (nextStep) {
-  }
-}
-
-/**
- *
- */
-
 export const handleSignIn = async ({ username, password }) => {
   const result = await signIn({ username, password });
-  handleNextStep(result?.nextStep?.signInStep);
+  return result?.nextStep?.signInStep;
 }
 
 /**
@@ -40,7 +31,20 @@ export const handleSignIn = async ({ username, password }) => {
 
 export const handleResetPassword = async ({ username }) => {
   const result = await resetPassword({ username });
-  handleNextStep(result?.nextStep?.resetPasswordStep);
+  return result?.nextStep?.resetPasswordStep;
+}
+
+/**
+ *
+ */
+
+export const handleConfirmResetPassword = async ({ username, confirmationCode, newPassword }) => {
+  await confirmResetPassword({
+    username,
+    confirmationCode,
+    newPassword,
+  });
+  return "DONE";
 }
 
 /**

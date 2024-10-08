@@ -1,79 +1,46 @@
 <script>
-  import { superForm, setError } from "sveltekit-superforms";
-  import { zodClient } from "sveltekit-superforms/adapters";
-  import { usernameSchema } from "$lib/schemas/forgot-password-schemas";
-  import { handleResetPassword } from "$lib/services/auth-service";
+  import { writable } from "svelte/store";
+  import { setError } from "sveltekit-superforms";
+  import { handleResetPassword, handleConfirmResetPassword } from "$lib/services/auth-service";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
   import * as Form from "$lib/components/ui/form";
   import * as Dialog from "$lib/components/ui/dialog";
+  import Step1, { open as step1Open } from "./step1.svelte";
+  import Step2, { open as step2Open } from "./step2.svelte";
 
-  const handleValidForm = async form => {
+  let username = writable(undefined);
+
+  const handleValidFormStep1 = async form => {
     const formData = form.data;
     try {
-      await handleResetPassword({ username: formData.email });
+      const result = await handleResetPassword({ username: formData.email });
+      if (result === "CONFIRM_RESET_PASSWORD_WITH_CODE") {
+        username.set(formData.email);
+        step1Open.set(false);
+        step2Open.set(true);
+      }
     } catch (err) {
       setError(form, "email", err.message);
     }
   }
 
-  const form = superForm({}, {
-    SPA: true,
-    resetForm: false,
-    clearOnSubmit: "errors",
-    validators: zodClient(usernameSchema),
-    async onUpdate({ form }) {
-      if (!form.valid) return;
-      await handleValidForm(form);
+  const handleValidFormStep2 = async form => {
+    const formData = form.data;
+    try {
+      const result = await handleConfirmResetPassword({
+        username: $username,
+        confirmationCode: formData.confirmationCode,
+        newPassword: formData.newPassword,
+      });
+      console.log(result, $username);
+      if (result === "DONE") step2Open.set(false);
+    } catch (err) {
+      console.log(err);
+      setError(form, "email", err.message);
     }
-  });
-
-  const { form: formData, enhance, submitting } = form;
+  }
 </script>
 
-<Dialog.Root>
-  <Dialog.Trigger asChild let:builder>
-    <Button
-      variant="link"
-      builders={[builder]}
-      class="ml-auto inline-block text-sm font-normal hover:underline p-0 h-auto"
-    >
-      Forgot your password?
-    </Button>
-  </Dialog.Trigger>
-
-  <Dialog.Content class="max-w-[425px]">
-    <Dialog.Header>
-      <Dialog.Title>
-        Reset Password
-      </Dialog.Title>
-      <Dialog.Description>
-        Enter your email below to recieve a verification code to reset your password.
-      </Dialog.Description>
-    </Dialog.Header>
-
-    <form class="grid gap-4" method="POST" use:enhance>
-      <Form.Field name="email" class="space-y-1" {form}>
-        <Form.Control let:attrs>
-          <Form.Label>Email</Form.Label>
-          <Input
-            id="email"
-            placeholder="user@example.com"
-            bind:value={$formData.email}
-            {...attrs}
-          />
-        </Form.Control>
-        <Form.FieldErrors />
-      </Form.Field>
-
-      <Dialog.Footer>
-        <Button variant="outline" disabled={$submitting}>
-          Cancel
-        </Button>
-        <Button type="submit">
-          Send Code
-        </Button>
-      </Dialog.Footer>
-    </form>
-  </Dialog.Content>
-</Dialog.Root>
+<Step1 onSubmit={handleValidFormStep1} />
+<Step2 onSubmit={handleValidFormStep2} />
