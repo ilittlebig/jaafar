@@ -16,6 +16,7 @@ import {
   PUBLIC_USER_POOL_ID,
   PUBLIC_USER_POOL_CLIENT_ID,
 } from "$env/static/public";
+import { toast } from "svelte-sonner";
 import { totpSetupDetails } from "$lib/stores/auth-store";
 import { mfaSetupDialogOpen } from "$lib/components/dialogs/auth-dialogs/mfa-setup-dialog";
 import { forgotPasswordStep2Open } from "$lib/components/dialogs/auth-dialogs/forgot-password-dialog";
@@ -27,7 +28,6 @@ import { newPasswordRequiredDialogOpen } from "$lib/components/dialogs/auth-dial
  */
 
 export const handleNextStep = (nextStep, result) => {
-  console.log("next step:", nextStep, result); // TODO: remove this line
   switch (nextStep) {
     case "CONTINUE_SIGN_IN_WITH_TOTP_SETUP":
       const { totpSetupDetails: setupDetails } = result?.nextStep;
@@ -46,6 +46,7 @@ export const handleNextStep = (nextStep, result) => {
       forgotPasswordStep2Open.set(true);
       break;
     case "DONE":
+      toast.success("Successfully signed in. Redirecting...");
       mfaSetupDialogOpen.set(false);
       newPasswordRequiredDialogOpen.set(false);
       mfaCodeDialogOpen.set(false);
