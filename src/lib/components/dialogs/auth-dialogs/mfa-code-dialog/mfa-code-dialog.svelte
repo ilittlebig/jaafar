@@ -6,21 +6,19 @@
 <script>
   import { superForm, setError } from "sveltekit-superforms";
   import { zodClient } from "sveltekit-superforms/adapters";
-  import { usernameSchema } from "$lib/schemas/auth-schemas";
-  import { username } from "$lib/stores/auth-store";
-  import { handleResetPassword } from "$lib/services/auth-service";
+  import { mfaCodeSchema } from "$lib/schemas/auth-schemas";
+  import { handleChallengeResponse } from "$lib/services/auth-service";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
-  import * as Form from "$lib/components/ui/form";
   import * as Dialog from "$lib/components/ui/dialog";
+  import * as Form from "$lib/components/ui/form";
 
   const handleValidForm = async form => {
     const formData = form.data;
     try {
-      username.set(formData.email);
-      await handleResetPassword({ username: formData.email });
+      await handleChallengeResponse({ response: formData.code });
     } catch (err) {
-      setError(form, "email", err.message);
+      setError(form, "code", err.message);
     }
   }
 
@@ -28,7 +26,7 @@
     SPA: true,
     resetForm: false,
     clearOnSubmit: "errors",
-    validators: zodClient(usernameSchema),
+    validators: zodClient(mfaCodeSchema),
     async onUpdate({ form }) {
       if (!form.valid) return;
       await handleValidForm(form);
@@ -39,34 +37,23 @@
 </script>
 
 <Dialog.Root bind:open={$open} onOpenChange={() => form.reset()}>
-  <Dialog.Trigger asChild let:builder>
-    <Button
-      variant="link"
-      builders={[builder]}
-      class="ml-auto inline-block text-sm font-normal hover:underline p-0 h-auto"
-    >
-      Forgot your password?
-    </Button>
-  </Dialog.Trigger>
-
   <Dialog.Content class="max-w-[425px]">
     <Dialog.Header>
       <Dialog.Title>
-        Reset Password
+        Enter MFA Code
       </Dialog.Title>
       <Dialog.Description>
-        Enter your email below to recieve a verification code to reset your password.
+        Enter the 6-digit code from your authenticator app to continue.
       </Dialog.Description>
     </Dialog.Header>
 
     <form class="grid gap-4" method="POST" use:enhance>
-      <Form.Field name="email" class="space-y-1" {form}>
+      <Form.Field name="code" class="space-y-1" {form}>
         <Form.Control let:attrs>
-          <Form.Label>Email</Form.Label>
+          <Form.Label>Code</Form.Label>
           <Input
-            id="email"
-            placeholder="user@example.com"
-            bind:value={$formData.email}
+            id="code"
+            bind:value={$formData.code}
             {...attrs}
           />
         </Form.Control>
@@ -78,7 +65,7 @@
           Cancel
         </Button>
         <Button type="submit" disabled={$submitting}>
-          Send Code
+          Submit Code
         </Button>
       </Dialog.Footer>
     </form>

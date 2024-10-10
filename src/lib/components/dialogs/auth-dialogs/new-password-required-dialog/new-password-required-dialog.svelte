@@ -6,30 +6,25 @@
 <script>
   import { superForm, setError } from "sveltekit-superforms";
   import { zodClient } from "sveltekit-superforms/adapters";
-  import { forgotPasswordSchema } from "$lib/schemas/auth-schemas";
-  import { username } from "$lib/stores/auth-store";
-  import { handleConfirmResetPassword } from "$lib/services/auth-service";
+  import { newPasswordRequiredSchema } from "$lib/schemas/auth-schemas";
+  import { handleChallengeResponse } from "$lib/services/auth-service";
   import * as Dialog from "$lib/components/ui/dialog";
   import PasswordResetForm from "$lib/components/password-reset-form.svelte";
 
   const handleValidForm = async form => {
     const formData = form.data;
     try {
-      await handleConfirmResetPassword({
-        username: $username,
-        confirmationCode: formData.confirmationCode,
-        newPassword: formData.newPassword,
-      });
+      await handleChallengeResponse({ response: formData.newPassword });
     } catch (err) {
-      setError(form, "email", err.message);
+      setError(form, "newPassword", err.message);
     }
-  }
+  };
 
   const form = superForm({}, {
     SPA: true,
     resetForm: false,
     clearOnSubmit: "errors",
-    validators: zodClient(forgotPasswordSchema),
+    validators: zodClient(newPasswordRequiredSchema),
     async onUpdate({ form }) {
       if (!form.valid) return;
       await handleValidForm(form);
@@ -43,12 +38,12 @@
   <Dialog.Content class="max-w-[425px]">
     <Dialog.Header>
       <Dialog.Title>
-        Enter Verification Code
+        Password Reset Required
       </Dialog.Title>
       <Dialog.Description>
-        We have sent a verification code to your email. Please enter it below.
+        Enter the code sent to your email and your new password to continue.
       </Dialog.Description>
     </Dialog.Header>
-    <PasswordResetForm {enhance} {form} {formData} {submitting} {open} />
+    <PasswordResetForm codeRequired={false} {enhance} {form} {formData} {submitting} {open} />
   </Dialog.Content>
 </Dialog.Root>

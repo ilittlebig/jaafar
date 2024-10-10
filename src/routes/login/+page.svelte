@@ -1,18 +1,27 @@
 <script>
   import { superForm, setError } from "sveltekit-superforms";
   import { zodClient } from "sveltekit-superforms/adapters";
-  import { loginSchema } from "$lib/schemas/login-schemas";
+  import { loginSchema } from "$lib/schemas/auth-schemas";
   import { handleSignIn } from "$lib/services/auth-service";
+  import { username } from "$lib/stores/auth-store";
   import { Button } from "$lib/components/ui/button";
   import { Input } from "$lib/components/ui/input";
-  import { ForgotPasswordDialog, SignUpDialog } from "$lib/components/dialogs/auth-dialogs";
+  import { ForgotPasswordDialog } from "$lib/components/dialogs/auth-dialogs/forgot-password-dialog";
+  import { SignUpDialog } from "$lib/components/dialogs/auth-dialogs/sign-up-dialog";
+  import { NewPasswordRequiredDialog } from "$lib/components/dialogs/auth-dialogs/new-password-required-dialog";
+  import { MfaCodeDialog } from "$lib/components/dialogs/auth-dialogs/mfa-code-dialog";
+  import { MfaSetupDialog } from "$lib/components/dialogs/auth-dialogs/mfa-setup-dialog";
   import LightSwitch from "$lib/components/light-switch.svelte";
   import * as Form from "$lib/components/ui/form";
 
   const handleValidForm = async form => {
     const formData = form.data;
     try {
-      await handleSignIn({ username: formData.email, password: formData.password });
+      username.set(formData.email);
+      await handleSignIn({
+        username: formData.email,
+        password: formData.password
+      });
     } catch (err) {
       setError(form, "email", err.message);
     }
@@ -31,6 +40,10 @@
 
   const { form: formData, enhance, submitting } = form;
 </script>
+
+<NewPasswordRequiredDialog />
+<MfaCodeDialog />
+<MfaSetupDialog />
 
 <div class="flex w-full h-screen items-center justify-center overflow-hidden">
   <div class="absolute top-0 right-0 pr-3 pt-3 z-20">

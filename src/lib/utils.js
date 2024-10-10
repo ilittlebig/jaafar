@@ -1,6 +1,7 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
+import QRCode from "qrcode";
 
 export function cn(...inputs) {
 	return twMerge(clsx(inputs));
