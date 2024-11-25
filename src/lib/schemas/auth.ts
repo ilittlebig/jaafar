@@ -17,6 +17,3 @@ export const resetPasswordFormSchema = z.object({
     .string({ required_error: "Please enter an email" })
     .email("Invalid email address"),
 });
-
-export type LoginFormSchema = typeof loginFormSchema;
-export type ResetPasswordFormSchema = typeof resetPasswordFormSchema;
