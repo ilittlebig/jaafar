@@ -1,4 +1,5 @@
 <script module>
+	import { handleResetPassword } from "$lib/services/auth-service";
 	export let resetPasswordDialog = $state({ open: false });
 </script>
 
@@ -6,8 +7,6 @@
 	import { Button } from "$lib/components/ui/button";
 	import * as Dialog from "$lib/components/ui/dialog";
 	import ResetPasswordForm from "$lib/components/auth/reset-password-form.svelte";
-
-	const data = { username: "" };
 </script>
 
 <Dialog.Root bind:open={resetPasswordDialog.open}>
@@ -25,6 +24,6 @@
         Enter your email below to recieve a verification code to reset your password.
 			</Dialog.Description>
 		</Dialog.Header>
-		<ResetPasswordForm {data} />
+		<ResetPasswordForm onsubmit={handleResetPassword} />
 	</Dialog.Content>
 </Dialog.Root>

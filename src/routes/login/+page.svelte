@@ -1,9 +1,11 @@
+<script module>
+	import { handleSignIn } from "$lib/services/auth-service";
+</script>
+
 <script lang="ts">
 	import * as Card from "$lib/components/ui/card";
 	import LoginForm from "$lib/components/auth/login-form.svelte";
 	import SignUpDialog from "$lib/components/dialogs/auth/sign-up-dialog.svelte";
-
-	const data = { username: "", password: "" };
 </script>
 
 <div class="flex items-center justify-center h-screen w-full relative">
@@ -13,7 +15,7 @@
 			<Card.Description>Enter your email below to login to your account</Card.Description>
 		</Card.Header>
 		<Card.Content>
-			<LoginForm {data} />
+			<LoginForm onsubmit={handleSignIn} />
 			<div class="mt-4 text-center text-sm">
 				Don't have an account?
 				<SignUpDialog />
