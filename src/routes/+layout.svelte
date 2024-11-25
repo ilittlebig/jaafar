@@ -1,11 +1,12 @@
-<script>
-  import { ModeWatcher } from "mode-watcher";
-  import { Toaster } from "$lib/components/ui/sonner";
+<script lang="ts">
+  import "../app.css";
   import Titlebar from "$lib/components/titlebar.svelte";
+	let { children } = $props();
 </script>
 
-<Titlebar />
-<ModeWatcher />
-<Toaster />
+<svelte:head>
+	<link rel="stylesheet" href="/fontawesome/css/all.css" />
+</svelte:head>
 
-<slot />
+<Titlebar />
+{@render children()}
