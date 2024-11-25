@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { superForm, type Infer } from "sveltekit-superforms";
+	import {
+		superForm,
+		setError,
+		type SuperValidated,
+		type Infer,
+	} from "sveltekit-superforms";
 	import { zodClient } from "sveltekit-superforms/adapters";
 	import { loginFormSchema, type LoginFormSchema } from "$lib/schemas/auth";
 	import { Input } from "$lib/components/ui/input";
@@ -8,18 +13,32 @@
 	import ResetPasswordDialog from "$lib/components/dialogs/auth/reset-password-dialog.svelte";
 
 	interface Props {
-		data: Infer<LoginFormSchema>;
+		onsubmit: (username: string, password: string) => Promise<void>;
 	}
-	let { data }: Props = $props();
+
+	let { onsubmit }: Props = $props();
+	const data = { username: "", password: "" };
+
+  const handleValidForm = async (form: SuperValidated<Infer<LoginFormSchema>>) => {
+    const formData = form.data;
+    try {
+      await onsubmit(formData.username, formData.password);
+    } catch (err: any) {
+      setError(form, "username", err.message);
+    }
+  };
 
 	const form = superForm(data, {
     SPA: true,
     resetForm: false,
     clearOnSubmit: "errors",
     validators: zodClient(loginFormSchema),
+    async onUpdate({ form }) {
+      if (form.valid) await handleValidForm(form);
+    }
   });
 
-  const { form: formData, enhance } = form;
+  const { form: formData, enhance, submitting } = form;
 </script>
 
 <form class="grid gap-4" method="POST" use:enhance>
@@ -44,12 +63,16 @@
 					<Form.Label>Password</Form.Label>
 					<ResetPasswordDialog />
 				</div>
-				<Input {...props} bind:value={$formData.password} />
+				<Input
+					{...props}
+					type="password"
+					bind:value={$formData.password}
+				/>
 			{/snippet}
 		</Form.Control>
 		<Form.FieldErrors />
 	</Form.Field>
 
-	<Form.Button>Submit</Form.Button>
+	<Form.Button disabled={$submitting}>Submit</Form.Button>
 	<Button variant="outline">Login with Google</Button>
 </form>

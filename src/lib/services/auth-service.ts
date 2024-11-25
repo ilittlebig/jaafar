@@ -12,8 +12,10 @@ import {
 import {
 	EasyAuth,
 	signIn,
+	resetPassword,
 } from "@ilittlebig/easy-auth";
 import { resetPasswordVerificationDialog } from "$lib/components/dialogs/auth/reset-password-verification-dialog.svelte";
+import { resetPasswordDialog } from "$lib/components/dialogs/auth/reset-password-dialog.svelte";
 
 export const handleNextStep = (nextStep: string = "", result?: any) => {
   console.log(nextStep);
@@ -34,6 +36,7 @@ export const handleNextStep = (nextStep: string = "", result?: any) => {
 		*/
     case "RESET_PASSWORD":
     case "CONFIRM_RESET_PASSWORD_WITH_CODE":
+			resetPasswordDialog.open = false;
       resetPasswordVerificationDialog.open = true;
       break;
     case "DONE":
@@ -54,6 +57,11 @@ export const handleSignIn = async (username: string, password: string) => {
   const result = await signIn({ username, password });
 	console.log(result);
   handleNextStep(result?.nextStep?.signInStep, result);
+}
+
+export const handleResetPassword = async (username: string) => {
+  const result = await resetPassword({ username });
+  handleNextStep(result?.nextStep?.resetPasswordStep);
 }
 
 export const configureEasyAuth = () => {
