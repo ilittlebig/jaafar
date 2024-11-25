@@ -13,6 +13,8 @@ import {
 	EasyAuth,
 	signIn,
 	resetPassword,
+	type SignInInput,
+	type ResetPasswordInput,
 } from "@ilittlebig/easy-auth";
 import { resetPasswordVerificationDialog } from "$lib/components/dialogs/auth/reset-password-verification-dialog.svelte";
 import { resetPasswordDialog } from "$lib/components/dialogs/auth/reset-password-dialog.svelte";
@@ -53,13 +55,12 @@ export const handleNextStep = (nextStep: string = "", result?: any) => {
   }
 }
 
-export const handleSignIn = async (username: string, password: string) => {
+export const handleSignIn = async ({ username, password }: SignInInput) => {
   const result = await signIn({ username, password });
-	console.log(result);
   handleNextStep(result?.nextStep?.signInStep, result);
 }
 
-export const handleResetPassword = async (username: string) => {
+export const handleResetPassword = async ({ username }: ResetPasswordInput) => {
   const result = await resetPassword({ username });
   handleNextStep(result?.nextStep?.resetPasswordStep);
 }
