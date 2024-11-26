@@ -1,9 +1,12 @@
-<script>
-  import { ModeWatcher } from "mode-watcher";
+<script lang="ts">
+  import "../app.css";
   import Titlebar from "$lib/components/titlebar.svelte";
+	let { children } = $props();
 </script>
 
-<Titlebar />
-<ModeWatcher />
+<svelte:head>
+	<link rel="stylesheet" href="/fontawesome/css/all.css" />
+</svelte:head>
 
-<slot />
+<Titlebar />
+{@render children()}

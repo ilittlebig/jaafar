@@ -1,45 +1,49 @@
-<script>
-  import { Button } from "$lib/components/ui/button";
-  import { Input } from "$lib/components/ui/input";
-  import { Label } from "$lib/components/ui/label";
-  import LightSwitch from "$lib/components/light-switch.svelte";
+<script module>
+	import { handleSignIn } from "$lib/services/auth-service";
+	import { loginFormSchema } from "$lib/schemas/auth";
 </script>
 
-<div class="flex w-full h-screen items-center justify-center">
-  <div class="absolute top-0 right-0 pr-3 pt-3 z-20">
-    <LightSwitch />
-  </div>
+<script lang="ts">
+	import { Button } from "$lib/components/ui/button";
+	import * as Card from "$lib/components/ui/card";
+	import * as Form from "$lib/components/ui/form";
+	import FormComponent from "$lib/components/auth/form-component.svelte";
+	import ResetPasswordDialog from "$lib/components/dialogs/auth/reset-password-dialog.svelte";
+	import SignUpDialog from "$lib/components/dialogs/auth/sign-up-dialog.svelte";
 
-  <div class="flex items-center justify-center py-12">
-    <div class="mx-auto grid w-[350px] gap-6">
-      <div class="grid gap-2 text-center">
-        <h1 class="text-3xl font-bold">Login</h1>
-        <p class="text-muted-foreground text-balance">
-          Enter your email below to login to your account
-        </p>
-      </div>
+	const fields = [
+		{ name: "username", label: "Email", placeholder: "user@example.com" },
+		{ name: "password", label: "Password", type: "password", component: ResetPasswordDialog },
+	];
 
-      <div class="grid gap-4">
-        <div class="grid gap-2">
-          <Label for="email">Email</Label>
-          <Input id="email" type="email" placeholder="user@example.com" required />
-        </div>
-        <div class="grid gap-2">
-          <div class="flex items-center">
-            <Label for="password">Password</Label>
-            <a href="##" class="ml-auto inline-block text-sm underline">
-              Forgot your password?
-            </a>
-          </div>
-          <Input id="password" type="password" required />
-        </div>
-        <Button type="submit" class="w-full">Login</Button>
-      </div>
+	const data = { username: "", password: "" };
+</script>
 
-      <div class="mt-4 text-center text-sm">
-        Don't have an account?
-        <a href="##" class="underline"> Sign up </a>
-      </div>
-    </div>
-  </div>
+<div class="flex items-center justify-center h-screen w-full relative">
+	<Card.Root class="mx-auto w-full max-w-sm">
+		<Card.Header>
+			<Card.Title class="text-2xl">Login</Card.Title>
+			<Card.Description>Enter your email below to login to your account</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<FormComponent {data} {fields} onsubmit={handleSignIn} schema={loginFormSchema}>
+				{#snippet children(submitting)}
+					<Form.Button disabled={submitting}>Submit</Form.Button>
+					<Button variant="outline">Login with Google</Button>
+				{/snippet}
+			</FormComponent>
+			<div class="mt-4 text-center text-sm">
+				Don't have an account?
+				<SignUpDialog />
+			</div>
+		</Card.Content>
+	</Card.Root>
+
+	<div class="flex gap-x-8 absolute bottom-0 p-4">
+		<p class="text-sm text-muted-foreground">
+			Made with
+			<i class="fa-solid fa-heart text-destructive"></i>
+			by Jaafar.
+		</p>
+	</div>
 </div>
