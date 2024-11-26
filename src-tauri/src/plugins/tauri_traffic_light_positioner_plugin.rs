@@ -2,7 +2,7 @@ use objc::{msg_send, sel, sel_impl};
 use rand::{distributions::Alphanumeric, Rng};
 use tauri::{
     plugin::{Builder, TauriPlugin},
-    Manager, Runtime, Window, Emitter
+    Runtime, Window, Emitter
 }; // 0.8
 
 const WINDOW_CONTROL_PAD_X: f64 = 15.0;
