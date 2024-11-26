@@ -40,7 +40,7 @@
     try {
       await onsubmit(formData);
     } catch (err: any) {
-      setError(form, "username", err.message);
+      setError(form, fields[0].name, err.message);
     }
   };
 

@@ -6,3 +6,4 @@
  */
 
 export let usernameStore = $state({ value: "" });
+export let totpSetupDetailsStore = $state({ value: undefined });

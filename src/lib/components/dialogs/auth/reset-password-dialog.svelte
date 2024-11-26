@@ -3,9 +3,18 @@
 </script>
 
 <script lang="ts">
+	import { handleResetPassword } from "$lib/services/auth-service";
+	import { resetPasswordFormSchema } from "$lib/schemas/auth";
 	import { Button } from "$lib/components/ui/button";
 	import * as Dialog from "$lib/components/ui/dialog";
-	import ResetPasswordForm from "$lib/components/auth/reset-password-form.svelte";
+	import * as Form from "$lib/components/ui/form";
+	import FormComponent from "$lib/components/auth/form-component.svelte";
+
+	const fields = [
+		{ name: "username", label: "Email", placeholder: "user@example.com" }
+	];
+
+	const data = { username: "" };
 </script>
 
 <Dialog.Root bind:open={resetPasswordDialog.open}>
@@ -23,6 +32,12 @@
         Enter your email below to recieve a verification code to reset your password.
 			</Dialog.Description>
 		</Dialog.Header>
-		<ResetPasswordForm />
+		<FormComponent {data} {fields} onsubmit={handleResetPassword} schema={resetPasswordFormSchema}>
+			{#snippet children(submitting)}
+				<div class="flex justify-end">
+					<Form.Button disabled={submitting}>Send Code</Form.Button>
+				</div>
+			{/snippet}
+		</FormComponent>
 	</Dialog.Content>
 </Dialog.Root>
