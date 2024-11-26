@@ -4,6 +4,7 @@
 
 <script lang="ts">
 	import * as Dialog from "$lib/components/ui/dialog";
+	import ResetPasswordVerificationForm from "$lib/components/auth/reset-password-verification-form.svelte";
 </script>
 
 <Dialog.Root bind:open={resetPasswordVerificationDialog.open}>
@@ -14,5 +15,6 @@
         Enter your email below to recieve a verification code to reset your password.
 			</Dialog.Description>
 		</Dialog.Header>
+		<ResetPasswordVerificationForm />
 	</Dialog.Content>
 </Dialog.Root>
