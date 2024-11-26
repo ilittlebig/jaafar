@@ -13,7 +13,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@ilittlebig/easy-auth": "^0.0.8",
+    "@ilittlebig/easy-auth": "^0.0.9",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-shell": "^2",
     "qrcode": "^1.5.4"
