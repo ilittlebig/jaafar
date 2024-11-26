@@ -1,7 +1,5 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "jaafar",
-  "version": "0.1.0",
   "identifier": "com.jaafar.app",
   "build": {
     "beforeDevCommand": "npm run dev",

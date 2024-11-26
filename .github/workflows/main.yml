@@ -57,8 +57,8 @@ jobs:
           PUBLIC_USER_POOL_ID: ${{ secrets.PUBLIC_USER_POOL_ID }}
           PUBLIC_USER_POOL_CLIENT_ID: ${{ secrets.PUBLIC_USER_POOL_CLIENT_ID }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: "App v__VERSION__"
+          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          releaseName: "v__VERSION__"
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
