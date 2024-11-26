@@ -1,3 +1,5 @@
+#![cfg(target_os = "macos")]
+
 use objc::{msg_send, sel, sel_impl};
 use rand::{distributions::Alphanumeric, Rng};
 use tauri::{
