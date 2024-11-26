@@ -44,6 +44,7 @@
 			return { qrCodeUrl, sharedSecret };
 		} catch (err) {
 			console.error("Failed to generate QR code:", err);
+			// TODO:
 			throw err; // Re-throw the error for handling at the call site
 		}
 	};
@@ -94,7 +95,7 @@
 		<FormComponent {data} {fields} onsubmit={handleChallengeResponse} schema={totpCodeFormSchema}>
 			{#snippet children(submitting)}
 				<div class="flex justify-end">
-					<Form.Button disabled={submitting}>Submit</Form.Button>
+					<Form.Button disabled={submitting}>Setup MFA</Form.Button>
 				</div>
 			{/snippet}
 		</FormComponent>
