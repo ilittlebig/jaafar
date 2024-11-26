@@ -1,6 +1,6 @@
-#![cfg(target_os = "macos")]
-
+#[cfg(target_os = "macos")]
 use objc::{msg_send, sel, sel_impl};
+
 use rand::{distributions::Alphanumeric, Rng};
 use tauri::{
     plugin::{Builder, TauriPlugin},
