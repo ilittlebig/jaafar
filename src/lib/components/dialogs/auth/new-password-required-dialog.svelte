@@ -25,7 +25,13 @@
 				For your security, you need to reset your password before you can continue.
 			</Dialog.Description>
 		</Dialog.Header>
-		<FormComponent {data} {fields} onsubmit={handleChallengeResponse} schema={newPasswordRequiredFormSchema}>
+		<FormComponent
+			{data} 
+			{fields}
+			onsubmit={handleChallengeResponse}
+			onsuccess={() => newPasswordRequiredDialog.open = false}
+			schema={newPasswordRequiredFormSchema}
+		>
 			{#snippet children(submitting)}
 				<div class="flex justify-end">
 					<Form.Button disabled={submitting}>Change Password</Form.Button>

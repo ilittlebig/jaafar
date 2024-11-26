@@ -24,7 +24,13 @@
         Enter the 6-digit code from your authenticator app to continue.
 			</Dialog.Description>
 		</Dialog.Header>
-		<FormComponent {data} {fields} onsubmit={handleChallengeResponse} schema={totpCodeFormSchema}>
+		<FormComponent
+			{data} 
+			{fields}
+			onsubmit={handleChallengeResponse}
+			onsuccess={() => totpCodeDialog.open = false}
+			schema={totpCodeFormSchema}
+		>
 			{#snippet children(submitting)}
 				<div class="flex justify-end">
 					<Form.Button disabled={submitting}>Submit</Form.Button>

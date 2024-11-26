@@ -21,6 +21,7 @@
 
 	interface Props {
 		onsubmit: (formData: any) => Promise<void>;
+		onsuccess?: () => void;
 		fields: Field[];
 		schema: z.ZodTypeAny;
 		data: Record<string, string>;
@@ -29,6 +30,7 @@
 
 	let {
 		onsubmit,
+		onsuccess,
 		fields,
 		schema,
 		data,
@@ -39,6 +41,7 @@
     const formData = form.data;
     try {
       await onsubmit(formData);
+			onsuccess?.();
     } catch (err: any) {
       setError(form, fields[0].name, err.message);
     }
