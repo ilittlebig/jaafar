@@ -22,9 +22,9 @@
 	interface Props {
 		onsubmit: (formData: any) => Promise<void>;
 		fields: Field[];
-		schema: z.AnyZodObject;
+		schema: z.ZodTypeAny;
 		data: Record<string, string>;
-		children: Snippet;
+		children: Snippet<[boolean]>;
 	}
 
 	let {
@@ -54,7 +54,7 @@
     }
   });
 
-  const { form: formData, enhance } = form;
+  const { form: formData, enhance, submitting } = form;
 </script>
 
 <form class="grid gap-4" method="POST" use:enhance>
@@ -82,5 +82,5 @@
 			<Form.FieldErrors />
 		</Form.Field>
 	{/each}
-	{@render children?.()}
+	{@render children?.($submitting)}
 </form>

@@ -7,6 +7,26 @@
 
 import { z } from "zod";
 
+const passwordSchema = z
+  .string({ required_error: "New password is required" })
+  .min(8, "Password must be at least 8 characters long")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/\d/, "Password must contain at least one number")
+  .regex(/[\W_]/, "Password must contain at least one special character");
+
+export const resetPasswordVerificationFormSchema = z.object({
+  confirmationCode: z
+    .string({ required_error: "Code is required" })
+    .regex(/^\d{6}$/, "Code must be exactly 6 digits"),
+  newPassword: passwordSchema,
+  confirmPassword: z.string({ required_error: "Confirm password is required" }),
+})
+.refine(data => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
 export const loginFormSchema = z.object({
 	username: z.string().min(2).max(50),
 	password: z.string().min(2).max(50),
