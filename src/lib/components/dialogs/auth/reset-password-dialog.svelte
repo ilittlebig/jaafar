@@ -32,7 +32,13 @@
         Enter your email below to recieve a verification code to reset your password.
 			</Dialog.Description>
 		</Dialog.Header>
-		<FormComponent {data} {fields} onsubmit={handleResetPassword} schema={resetPasswordFormSchema}>
+		<FormComponent
+			{data} 
+			{fields}
+			onsubmit={handleResetPassword}
+			onsuccess={() => resetPasswordDialog.open = false}
+			schema={resetPasswordFormSchema}
+		>
 			{#snippet children(submitting)}
 				<div class="flex justify-end">
 					<Form.Button disabled={submitting}>Send Code</Form.Button>

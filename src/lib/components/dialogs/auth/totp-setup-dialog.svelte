@@ -92,7 +92,13 @@
 		 </Tooltip.Provider>
     </div>
 
-		<FormComponent {data} {fields} onsubmit={handleChallengeResponse} schema={totpCodeFormSchema}>
+		<FormComponent
+			{data} 
+			{fields}
+			onsubmit={handleChallengeResponse}
+			onsuccess={() => totpSetupDialog.open = false}
+			schema={totpCodeFormSchema}
+		>
 			{#snippet children(submitting)}
 				<div class="flex justify-end">
 					<Form.Button disabled={submitting}>Setup MFA</Form.Button>
