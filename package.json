@@ -1,7 +1,5 @@
 {
-  "name": "jaafar",
-  "version": "0.1.0",
-  "description": "",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -11,7 +9,6 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri"
   },
-  "license": "MIT",
   "dependencies": {
     "@ilittlebig/easy-auth": "^0.0.9",
     "@tauri-apps/api": "^2",
