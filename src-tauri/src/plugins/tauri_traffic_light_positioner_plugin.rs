@@ -1,11 +1,14 @@
+use tauri::{
+    plugin::{Builder, TauriPlugin},
+    Runtime
+};
+
 #[cfg(target_os = "macos")]
 mod macos {
+    use super::*;
     use objc::{msg_send, sel, sel_impl};
     use rand::{distributions::Alphanumeric, Rng};
-    use tauri::{
-        plugin::{Builder, TauriPlugin},
-        Runtime, Window, Emitter
-    }; // 0.8
+    use tauri::{Window, Emitter};
 
     const WINDOW_CONTROL_PAD_X: f64 = 15.0;
     const WINDOW_CONTROL_PAD_Y: f64 = 19.0;
