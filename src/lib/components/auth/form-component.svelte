@@ -20,7 +20,7 @@
 	}
 
 	interface Props {
-		onsubmit: (formData: Record<string, unknown>) => Promise<void>;
+		onsubmit: (formData: any) => Promise<void>;
 		fields: Field[];
 		schema: z.AnyZodObject;
 		data: Record<string, string>;

@@ -1,16 +1,13 @@
-<script lang="ts">
+<script module>
+	import { handleSignIn } from "$lib/services/auth-service";
 	import { loginFormSchema } from "$lib/schemas/auth";
+</script>
+
+<script lang="ts">
 	import { Button } from "$lib/components/ui/button";
 	import * as Form from "$lib/components/ui/form";
 	import FormComponent from "$lib/components/auth/form-component.svelte";
 	import ResetPasswordDialog from "$lib/components/dialogs/auth/reset-password-dialog.svelte";
-
-	interface Props {
-		onsubmit: (formData: Record<string, unknown>) => Promise<void>;
-	}
-
-	let { onsubmit }: Props = $props();
-	const data = { username: "", password: "" };
 
 	const fields = [
 		{
@@ -25,9 +22,11 @@
 			component: ResetPasswordDialog,
 		},
 	];
+
+	const data = { username: "", password: "" };
 </script>
 
-<FormComponent {data} {fields} {onsubmit} schema={loginFormSchema}>
+<FormComponent {data} {fields} onsubmit={handleSignIn} schema={loginFormSchema}>
 	<Form.Button>Submit</Form.Button>
 	<Button variant="outline">Login with Google</Button>
 </FormComponent>

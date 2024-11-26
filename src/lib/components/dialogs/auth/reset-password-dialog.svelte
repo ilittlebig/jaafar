@@ -1,5 +1,4 @@
 <script module>
-	import { handleResetPassword } from "$lib/services/auth-service";
 	export let resetPasswordDialog = $state({ open: false });
 </script>
 
@@ -24,6 +23,6 @@
         Enter your email below to recieve a verification code to reset your password.
 			</Dialog.Description>
 		</Dialog.Header>
-		<ResetPasswordForm onsubmit={handleResetPassword} />
+		<ResetPasswordForm />
 	</Dialog.Content>
 </Dialog.Root>
