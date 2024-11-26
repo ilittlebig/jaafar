@@ -18,6 +18,8 @@ import {
 	type SignInInput,
 	type ResetPasswordInput,
 	type ConfirmResetPasswordInput,
+	type SignInOutput,
+	type ContinueSignInWithTOTPSetup,
 } from "@ilittlebig/easy-auth";
 import { usernameStore, totpSetupDetailsStore } from "$lib/stores/auth-store.svelte";
 import { resetPasswordVerificationDialog } from "$lib/components/dialogs/auth/reset-password-verification-dialog.svelte";
@@ -26,11 +28,11 @@ import { totpCodeDialog } from "$lib/components/dialogs/auth/totp-code-dialog.sv
 import { totpSetupDialog } from "$lib/components/dialogs/auth/totp-setup-dialog.svelte";
 import { newPasswordRequiredDialog } from "$lib/components/dialogs/auth/new-password-required-dialog.svelte";
 
-export const handleNextStep = (nextStep: string = "", result?: any) => {
+export const handleNextStep = (nextStep: string = "", result?: SignInOutput) => {
   console.log(nextStep);
   switch (nextStep) {
     case "CONTINUE_SIGN_IN_WITH_TOTP_SETUP":
-      const setupDetails = result?.nextStep?.totpSetupDetails;
+      const setupDetails = (result?.nextStep as ContinueSignInWithTOTPSetup)?.totpSetupDetails;
       totpSetupDetailsStore.value = setupDetails;
       totpSetupDialog.open = true;
       break;
