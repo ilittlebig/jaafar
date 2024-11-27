@@ -2,8 +2,12 @@
 	import Navbar from "$lib/components/navbar.svelte";
 	import Header from "$lib/components/header.svelte";
 	import UserMenu from "$lib/components/user-menu.svelte";
+	import SignOutDialog from "$lib/components/dialogs/auth/sign-out-dialog.svelte";
+
 	let { children } = $props();
 </script>
+
+<SignOutDialog />
 
 <div class="grid min-h-screen w-full grid-cols-[85px_1fr]">
 	<div class="bg-background border-r h-full w-full">

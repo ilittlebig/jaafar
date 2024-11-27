@@ -18,6 +18,7 @@ import {
 	signUp,
 	confirmSignUp,
 	resendSignUpCode,
+	signOut,
 	type SignInInput,
 	type ResetPasswordInput,
 	type ConfirmResetPasswordInput,
@@ -105,6 +106,10 @@ export const handleResendSignUpCode = async () => {
 
 export const handleResendResetPasswordCode = async () => {
 	await resetPassword({ username: usernameStore.value });
+}
+
+export const handleSignOut = async (isGlobal: boolean = false) => {
+	await signOut({ isGlobal });
 }
 
 export const handleConfirmResetPassword = async ({
