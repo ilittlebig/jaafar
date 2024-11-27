@@ -47,8 +47,8 @@ jobs:
 
       - name: Check Secret Lengths
         run: |
-          echo "Private Key Length: $(echo -n "${{ secrets.UPDATER_PRIVATE_KEY  }}" | wc -c)"
-          echo "Password Length: $(echo -n "${{ secrets.UPDATER_PRIVATE_KEY_PASSWORD }}" | wc -c)"
+          echo "Private Key Length: $(echo "${{ secrets.UPDATER_PRIVATE_KEY  }}")"
+          echo "Password Length: $(echo "${{ secrets.UPDATER_PRIVATE_KEY_PASSWORD }}")"
 
       - uses: tauri-apps/tauri-action@v0
         env:
