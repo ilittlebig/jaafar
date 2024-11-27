@@ -56,6 +56,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLIC_USER_POOL_ID: ${{ secrets.PUBLIC_USER_POOL_ID }}
           PUBLIC_USER_POOL_CLIENT_ID: ${{ secrets.PUBLIC_USER_POOL_CLIENT_ID }}
+          UPDATER_PRIVATE_KEY: ${{ secrets.UPDATER_PRIVATE_KEY }}
+          UPDATER_PRIVATE_KEY_PASSWORD: ${{ secrets.UPDATER_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: "v__VERSION__"
