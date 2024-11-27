@@ -1,6 +1,6 @@
 use tauri::{
     plugin::{Builder, TauriPlugin},
-    Runtime
+    Runtime,
 };
 
 #[cfg(target_os = "macos")]
@@ -8,7 +8,7 @@ mod macos {
     use super::*;
     use objc::{msg_send, sel, sel_impl};
     use rand::{distributions::Alphanumeric, Rng};
-    use tauri::{Window, Emitter};
+    use tauri::{Emitter, Window};
 
     const WINDOW_CONTROL_PAD_X: f64 = 15.0;
     const WINDOW_CONTROL_PAD_Y: f64 = 19.0;
@@ -100,7 +100,11 @@ mod macos {
                     let _: () = msg_send![super_del, windowWillClose: notification];
                 }
             }
-            extern "C" fn on_window_did_resize<R: Runtime>(this: &Object, _cmd: Sel, notification: id) {
+            extern "C" fn on_window_did_resize<R: Runtime>(
+                this: &Object,
+                _cmd: Sel,
+                notification: id,
+            ) {
                 unsafe {
                     with_window_state(&*this, |state: &mut WindowState<R>| {
                         let id = state
@@ -134,7 +138,8 @@ mod macos {
             ) {
                 unsafe {
                     let super_del: id = *this.get_ivar("super_delegate");
-                    let _: () = msg_send![super_del, windowDidChangeBackingProperties: notification];
+                    let _: () =
+                        msg_send![super_del, windowDidChangeBackingProperties: notification];
                 }
             }
             extern "C" fn on_window_did_become_key(this: &Object, _cmd: Sel, notification: id) {
