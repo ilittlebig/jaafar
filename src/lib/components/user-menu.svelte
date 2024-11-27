@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+	import { signOutDialog } from "$lib/components/dialogs/auth/sign-out-dialog.svelte";
 </script>
 
 <DropdownMenu.Root>
@@ -33,6 +34,8 @@
     </DropdownMenu.Item>
     <DropdownMenu.Item>Billing</DropdownMenu.Item>
     <DropdownMenu.Separator />
-    <DropdownMenu.Item>Sign Out</DropdownMenu.Item>
+		<DropdownMenu.Item onSelect={() => signOutDialog.open = true}>
+			Sign Out
+		</DropdownMenu.Item>
   </DropdownMenu.Content>
 </DropdownMenu.Root>
