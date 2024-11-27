@@ -47,15 +47,16 @@ jobs:
 
       - uses: tauri-apps/tauri-action@v0
         env:
+          TAURI_LOG: trace
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLIC_USER_POOL_ID: ${{ secrets.PUBLIC_USER_POOL_ID }}
           PUBLIC_USER_POOL_CLIENT_ID: ${{ secrets.PUBLIC_USER_POOL_CLIENT_ID }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.UPDATER_PRIVATE_KEY }}
-          UPDATER_PRIVATE_KEY_PASSWORD: ${{ secrets.UPDATER_PRIVATE_KEY_PASSWORD }}
+          TAURI_PRIVATE_KEY_PASSWORD: ${{ secrets.UPDATER_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: v__VERSION__
           releaseName: "v__VERSION__"
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
+          args: ${{ matrix.args }} -- --verbose
