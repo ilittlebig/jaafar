@@ -3,11 +3,12 @@
 </script>
 
 <script lang="ts">
-	import { handleConfirmResetPassword } from "$lib/services/auth-service";
+	import { handleConfirmResetPassword, handleResendResetPasswordCode } from "$lib/services/auth-service";
 	import { resetPasswordVerificationFormSchema } from "$lib/schemas/auth";
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as Form from "$lib/components/ui/form";
 	import FormComponent from "$lib/components/auth/form-component.svelte";
+	import CountdownButton from "$lib/components/countdown-button.svelte";
 
 	const fields = [
 		{ name: "confirmationCode", label: "Confirmation Code" },
@@ -23,7 +24,7 @@
 		<Dialog.Header>
 			<Dialog.Title>Enter Verification Code</Dialog.Title>
 			<Dialog.Description>
-        Enter your email below to recieve a verification code to reset your password.
+        Enter the 6-digit code sent to your email to continue.
 			</Dialog.Description>
 		</Dialog.Header>
 		<FormComponent
@@ -37,6 +38,12 @@
 				<div class="flex justify-end">
 					<Form.Button disabled={submitting}>Change Password</Form.Button>
 				</div>
+				<p class="text-sm text-center">
+					Didn't receive a code?
+					<CountdownButton callback={handleResendResetPasswordCode} initialDelay={5}>
+						Send code
+					</CountdownButton>
+				</p>
 			{/snippet}
 		</FormComponent>
 	</Dialog.Content>

@@ -9,11 +9,22 @@ import { z } from "zod";
 
 const passwordSchema = z
   .string({ required_error: "New password is required" })
-  .min(8, "Password must be at least 8 characters long")
-  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-  .regex(/\d/, "Password must contain at least one number")
-  .regex(/[\W_]/, "Password must contain at least one special character");
+  .superRefine((password, ctx) => {
+    const tests: { test: (pw: string) => boolean; message: string }[] = [
+      { test: pw => pw.length >= 8, message: "Password must be at least 8 characters long" },
+      { test: pw => /[a-z]/.test(pw), message: "Password must contain at least one lowercase letter" },
+      { test: pw => /[A-Z]/.test(pw), message: "Password must contain at least one uppercase letter" },
+      { test: pw => /\d/.test(pw), message: "Password must contain at least one number" },
+      { test: pw => /[\W_]/.test(pw), message: "Password must contain at least one special character" },
+    ];
+
+    for (const { test, message } of tests) {
+      if (!test(password)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message });
+        return;
+      }
+    }
+  });
 
 export const resetPasswordVerificationFormSchema = z.object({
   confirmationCode: z
@@ -47,6 +58,18 @@ export const loginFormSchema = z.object({
     }),
 });
 
+export const signUpFormSchema = z.object({
+  username: z
+    .string({ required_error: "Please enter an email" })
+    .email("Invalid email address"),
+  password: passwordSchema,
+  confirmPassword: z.string({ required_error: "Confirm password is required" }),
+})
+.refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
 export const resetPasswordFormSchema = z.object({
   username: z
     .string({ required_error: "Please enter an email" })
@@ -59,3 +82,8 @@ export const totpCodeFormSchema = z.object({
     .regex(/^\d{6}$/, "Code must be exactly 6 digits"),
 });
 
+export const confirmSignUpCodeFormSchema = z.object({
+  confirmationCode: z
+    .string({ required_error: "Code is required" })
+    .regex(/^\d{6}$/, "Code must be exactly 6 digits"),
+});
