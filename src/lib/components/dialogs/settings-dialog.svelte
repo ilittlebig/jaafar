@@ -3,7 +3,8 @@
 </script>
 
 <script lang="ts">
-	import type { Component } from "svelte";
+	import { onMount, onDestroy, type Component } from "svelte";
+  import { addHotkey, removeHotkey } from "$lib/services/hotkeys-service";
 	import { Separator } from "$lib/components/ui/separator";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import * as Dialog from "$lib/components/ui/dialog";
@@ -33,6 +34,9 @@
 		{ name: "security", label: "Security", icon: "fa-shield", page: SecurityPage },
 		{ name: "billing", label: "Billing", icon: "fa-money-bill", page: BillingPage },
 	];
+
+  onMount(() => addHotkey("meta+,", () => settingsDialog.open = true));
+  onDestroy(() => removeHotkey("meta+,"));
 </script>
 
 <Dialog.Root bind:open={settingsDialog.open}>
