@@ -2,10 +2,12 @@
 	import type { Component } from "svelte";
 	import { Button } from "$lib/components/ui/button";
 	import * as Tabs from "$lib/components/ui/tabs";
+    import {cn} from "$lib/utils";
 
 	interface Page {
 		name: string;
 		label: string;
+		icon: string;
 		page: Component
 	}
 
@@ -23,8 +25,11 @@
 				<Button
 					{...props}
 					variant="ghost"
-					class="w-fit data-[state=active]:bg-accent"
-				>{page.label}</Button>
+					class="justify-start data-[state=active]:bg-accent"
+				>
+					<i class={cn("fa-regular", page.icon)}></i>
+					{page.label}
+				</Button>
 			{/snippet}
 		</Tabs.Trigger>
 	{/each}
