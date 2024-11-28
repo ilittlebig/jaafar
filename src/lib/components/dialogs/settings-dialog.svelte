@@ -1,5 +1,5 @@
 <script module>
-	export let settingsDialog = $state({ open: true });
+	export let settingsDialog = $state({ open: false });
 </script>
 
 <script lang="ts">
