@@ -11,12 +11,4 @@
   >
 		<i class="fa-regular fa-bell text-lg"></i>
   </Button>
-  <Button
-    variant="ghost"
-    size="icon"
-    class="rounded-lg z-20"
-    aria-label="Help"
-  >
-		<i class="fa-regular fa-circle-question text-lg"></i>
-  </Button>
 </header>
