@@ -28,7 +28,6 @@
       </div>
     </DropdownMenu.Label>
     <DropdownMenu.Separator />
-    <DropdownMenu.Item>Billing</DropdownMenu.Item>
     <DropdownMenu.Item onSelect={() => settingsDialog.open = true}>
       Settings
       <DropdownMenu.Shortcut>⌘,</DropdownMenu.Shortcut>

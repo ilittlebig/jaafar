@@ -13,14 +13,18 @@
 	interface Page {
 		name: string;
 		label: string;
+		icon: string;
 		page: Component
 	}
 
 	const pages: Page[] = [
-		{ name: "profile", label: "Profile", page: ProfilePage },
-		{ name: "profile1", label: "Profile", page: Separator },
-		{ name: "profile2", label: "Profile", page: Separator },
-		{ name: "profile3", label: "Profile", page: Separator },
+		{ name: "account-settings", label: "Account Settings", icon: "fa-user", page: ProfilePage },
+		{ name: "notifications", label: "Notifications", icon: "fa-bell", page: Separator },
+		{ name: "privacy", label: "Privacy", icon: "fa-lock", page: Separator },
+		{ name: "preferences", label: "Preferences", icon: "fa-cog", page: Separator },
+		{ name: "integration", label: "Integration", icon: "fa-link", page: Separator },
+		{ name: "security", label: "Security", icon: "fa-shield", page: Separator },
+		{ name: "billing", label: "Billing", icon: "fa-money-bill", page: Separator },
 	];
 </script>
 
