@@ -5,7 +5,8 @@
 	const navigations = [
 		{ label: "Dashboard", icon: "fa-house", href: "/" },
 		{ label: "Tasks", icon: "fa-table-layout", href: "/tasks" },
-		{ label: "Signups", icon: "fa-user-tie-hair", href: "/signups" },
+		{ label: "Signups", icon: "fa-pen", href: "/signups" },
+		{ label: "Accounts", icon: "fa-user-tie-hair", href: "/accounts" },
 		{ label: "Proxies", icon: "fa-globe", href: "/proxies" },
 	];
 </script>

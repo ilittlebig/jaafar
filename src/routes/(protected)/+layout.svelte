@@ -2,11 +2,13 @@
 	import Header from "$lib/components/header.svelte";
 	import Sidebar from "$lib/components/sidebar.svelte";
 	import SignOutDialog from "$lib/components/dialogs/auth/sign-out-dialog.svelte";
+	import SettingsDialog from "$lib/components/dialogs/settings-dialog.svelte";
 
 	let { children } = $props();
 </script>
 
 <SignOutDialog />
+<SettingsDialog />
 
 <div class="grid min-h-screen w-full grid-cols-[85px_1fr]">
 	<Sidebar />
