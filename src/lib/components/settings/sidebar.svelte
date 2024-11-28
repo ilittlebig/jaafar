@@ -18,7 +18,7 @@
 	let { pages }: Props = $props();
 </script>
 
-<div class="flex flex-col w-48 h-full">
+<div class="flex flex-col w-48 h-full fixed">
 	{#each pages as page}
 		<Tabs.Trigger value={page.name}>
 			{#snippet child({ props })}

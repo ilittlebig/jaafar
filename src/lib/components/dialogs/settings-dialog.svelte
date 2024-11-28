@@ -5,6 +5,7 @@
 <script lang="ts">
 	import type { Component } from "svelte";
 	import { Separator } from "$lib/components/ui/separator";
+	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as Tabs from "$lib/components/ui/tabs";
 	import Sidebar from "$lib/components/settings/sidebar.svelte";
@@ -35,20 +36,24 @@
 </script>
 
 <Dialog.Root bind:open={settingsDialog.open}>
-	<Dialog.Content class="max-w-[800px] max-h-[650px] h-full flex flex-col">
-		<Dialog.Header class="h-fit">
+	<Dialog.Content class="max-w-[800px] max-h-[650px] h-full flex flex-col px-0 pt-6 pb-0 gap-0">
+		<Dialog.Header class="h-fit px-6">
 			<Dialog.Title>Settings</Dialog.Title>
 			<div class="-mx-6">
-				<Separator class="my-4" />
+				<Separator class="mt-4" />
 			</div>
 		</Dialog.Header>
-		<Tabs.Root value={pages[0].name} class="flex gap-x-4 h-full">
-			<Sidebar {pages} />
-			{#each pages as { name, page: Page }}
-				<Tabs.Content value={name} class="w-full">
-					<Page />
-				</Tabs.Content>
-			{/each}
-		</Tabs.Root>
+		<ScrollArea class="h-full" scrollHideDelay={0}>
+			<Tabs.Root value={pages[0].name} class="flex gap-x-4 h-full pb-6 px-6 pt-4">
+				<Sidebar {pages} />
+				<div class="ml-52 w-full">
+					{#each pages as { name, page: Page }}
+						<Tabs.Content value={name} class="w-full">
+							<Page />
+						</Tabs.Content>
+					{/each}
+				</div>
+			</Tabs.Root>
+		</ScrollArea>
 	</Dialog.Content>
 </Dialog.Root>
