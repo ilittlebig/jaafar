@@ -8,8 +8,8 @@
 	import { zodClient } from "sveltekit-superforms/adapters";
   import { addHotkey, removeHotkey } from "$lib/services/hotkeys-service";
   import { settingsSchema } from "$lib/schemas/settings";
-	import { settingsStore } from "$lib/stores/settings-store.svelte";
-	import { saveSettings } from "$lib/services/settings-service.svelte";
+	import { settingsLoaded, settingsStore } from "$lib/stores/settings-store.svelte";
+	import { loadSettings, saveSettings } from "$lib/services/settings-service.svelte";
 	import { Separator } from "$lib/components/ui/separator";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import * as Dialog from "$lib/components/ui/dialog";
@@ -69,7 +69,13 @@
 		await saveSettings($formData);
 	}
 
-  onMount(() => addHotkey("meta+,", () => settingsDialog.open = true));
+	onMount(async () => {
+		addHotkey("meta+,", () => settingsDialog.open = true);
+		if (settingsLoaded.value) return;
+		await loadSettings();
+		formData.set(settingsStore);
+	});
+
   onDestroy(() => removeHotkey("meta+,"));
 </script>
 
