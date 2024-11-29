@@ -291,6 +291,7 @@
 			<Table.Head>City</Table.Head>
 			<Table.Head>Postcode</Table.Head>
 			<Table.Head>Country</Table.Head>
+			<Table.Head>Actions</Table.Head>
 		</Table.Row>
 	</Table.Header>
 	<Table.Body>
@@ -322,6 +323,7 @@
 					<Badge variant="outline">{invoice.postcode}</Badge>
 				</Table.Cell>
 				<Table.Cell>{invoice.country}</Table.Cell>
+				<Table.Cell></Table.Cell>
 			</Table.Row>
 		{/each}
 	</Table.Body>

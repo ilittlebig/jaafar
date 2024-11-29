@@ -15,10 +15,12 @@
   <Sidebar />
   <div class="flex flex-col w-full h-screen min-w-0">
     <Header />
-		<ScrollArea>
-			<div class="flex flex-col gap-y-6 p-6 bg-muted/40 w-full h-full overflow-scroll">
-				{@render children()}
-			</div>
-		</ScrollArea>
+		<div class="flex bg-muted/40 w-full h-screen overflow-y-scroll">
+			<ScrollArea>
+				<div class="flex flex-col gap-y-6 h-full p-6">
+					{@render children()}
+				</div>
+			</ScrollArea>
+		</div>
   </div>
 </div>
