@@ -6,7 +6,7 @@
  */
 
 import { readFileJSON, writeFileJSON } from "$lib/services/files-service"
-import { settingsStore, type Settings } from "$lib/stores/settings-store.svelte";
+import { settingsStore, settingsLoaded, type Settings } from "$lib/stores/settings-store.svelte";
 import { deepMerge } from "$lib/utils"
 
 const updateSettingsStore = (settings: Settings) => {
@@ -29,6 +29,7 @@ export const loadSettings = async () => {
 		updateSettingsStore(mergedSettings);
 	}
 	await saveSettings();
+	settingsLoaded.value = true;
 }
 
 export const saveSettings = async (settings?: Settings) => {

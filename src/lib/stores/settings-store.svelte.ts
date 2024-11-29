@@ -18,3 +18,5 @@ export let settingsStore: Settings = $state({
 		webhook: undefined,
 	},
 });
+
+export let settingsLoaded = $state({ value: false });
