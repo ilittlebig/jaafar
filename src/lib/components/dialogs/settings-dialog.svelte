@@ -4,7 +4,12 @@
 
 <script lang="ts">
 	import { onMount, onDestroy, type Component } from "svelte";
+	import { superForm } from "sveltekit-superforms";
+	import { zodClient } from "sveltekit-superforms/adapters";
   import { addHotkey, removeHotkey } from "$lib/services/hotkeys-service";
+  import { settingsSchema } from "$lib/schemas/settings";
+	import { settingsStore } from "$lib/stores/settings-store.svelte";
+	import { saveSettings } from "$lib/services/settings-service.svelte";
 	import { Separator } from "$lib/components/ui/separator";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import * as Dialog from "$lib/components/ui/dialog";
@@ -22,8 +27,24 @@
 		name: string;
 		label: string;
 		icon: string;
-		page: Component
+		page: Component<any, {}, any>;
 	}
+
+	let currentTab: string | undefined = $state(undefined);
+
+	const form = superForm(settingsStore, {
+		dataType: "json",
+    SPA: true,
+    resetForm: false,
+    validators: zodClient(settingsSchema),
+  });
+
+	const {
+		form: formData,
+		enhance,
+		allErrors,
+		submit
+	} = form;
 
 	const pages: Page[] = [
 		{ name: "account-settings", label: "Account Settings", icon: "fa-user", page: AccountSettingsPage },
@@ -35,11 +56,24 @@
 		{ name: "billing", label: "Billing", icon: "fa-money-bill", page: BillingPage },
 	];
 
+	const onValueChange = async (value: string) => {
+		submit();
+		if ($allErrors.length > 0) return;
+		currentTab = value;
+	}
+
+	const onOpenChange = async (value: boolean) => {
+		submit();
+		if ($allErrors.length > 0) return;
+		settingsDialog.open = value;
+		await saveSettings($formData);
+	}
+
   onMount(() => addHotkey("meta+,", () => settingsDialog.open = true));
   onDestroy(() => removeHotkey("meta+,"));
 </script>
 
-<Dialog.Root bind:open={settingsDialog.open}>
+<Dialog.Root controlledOpen bind:open={settingsDialog.open} {onOpenChange}>
 	<Dialog.Content class="max-w-[800px] max-h-[650px] h-full flex flex-col px-0 pt-6 pb-0 gap-0">
 		<Dialog.Header class="h-fit px-6">
 			<Dialog.Title>Settings</Dialog.Title>
@@ -48,16 +82,23 @@
 			</div>
 		</Dialog.Header>
 		<ScrollArea class="h-full" scrollHideDelay={0}>
-			<Tabs.Root value={pages[0].name} class="flex gap-x-4 h-full pb-6 px-6 pt-4">
-				<Sidebar {pages} />
-				<div class="ml-52 w-full">
-					{#each pages as { name, page: Page }}
-						<Tabs.Content value={name} class="w-full">
-							<Page />
-						</Tabs.Content>
-					{/each}
-				</div>
-			</Tabs.Root>
+			<form method="POST" use:enhance>
+				<Tabs.Root
+					controlledValue
+					{onValueChange}
+					value={currentTab ?? pages[0].name}
+					class="flex gap-x-4 h-full pb-6 px-6 pt-4"
+				>
+					<Sidebar {pages} />
+					<div class="ml-52 w-full">
+							{#each pages as { name, page: Page }}
+								<Tabs.Content value={name} class="w-full">
+									<Page {form} {formData} />
+								</Tabs.Content>
+							{/each}
+					</div>
+				</Tabs.Root>
+			</form>
 		</ScrollArea>
 	</Dialog.Content>
 </Dialog.Root>
