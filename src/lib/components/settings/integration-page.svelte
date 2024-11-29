@@ -1,12 +1,20 @@
 <script lang="ts">
+	import type { SuperForm } from "sveltekit-superforms";
+	import type { SettingsSchema } from "$lib/schemas/settings";
 	import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
   import { Separator } from "$lib/components/ui/separator";
 	import * as Select from "$lib/components/ui/select";
+	import * as Form from "$lib/components/ui/form";
 
 	interface SelectType {
 		value: string;
 		label: string;
+	}
+
+	interface Props {
+		form: SuperForm<SettingsSchema>;
+		formData: SvelteStore<SettingsSchema>;
 	}
 
 	const captchaSolvers = [
@@ -28,6 +36,8 @@
       ? captchaSolvers.find((captcha: SelectType) => captcha.value === captchaValue)?.label
       : "Select a captcha solver"
   );
+
+	let { form, formData }: Props = $props();
 </script>
 
 <div class="flex flex-col gap-y-6 h-full">
@@ -50,16 +60,30 @@
 		</div>
 	{/if}
 	<Separator />
-	<div class="flex w-full flex-col gap-1.5">
-		<Label for="request-delay">Request Delay</Label>
-		<Input id="request-delay" placeholder="3000" />
-		<p class="text-muted-foreground text-sm">Configure the delay (in milliseconds) between automated actions.</p>
-	</div>
-	<div class="flex w-full flex-col gap-1.5">
-		<Label for="entry-limit">Entry Limit</Label>
-		<Input id="entry-limit" placeholder="10" />
-		<p class="text-muted-foreground text-sm">Sets the maximum number of entries/tasks to process per request.</p>
-	</div>
+	<Form.Field name="integration.request_delay" {form}>
+		<Form.Control>
+			{#snippet children({ props })}
+				<div class="flex w-full flex-col gap-1.5">
+					<Form.Label>Request Delay</Form.Label>
+					<Input {...props} placeholder="3000" bind:value={$formData.integration.request_delay} />
+					<p class="text-muted-foreground text-sm">Configure the delay (in milliseconds) between automated actions.</p>
+				</div>
+			{/snippet}
+		</Form.Control>
+		<Form.FieldErrors />
+	</Form.Field>
+	<Form.Field name="integration.entry_limit" {form}>
+		<Form.Control>
+			{#snippet children({ props })}
+				<div class="flex w-full flex-col gap-1.5">
+					<Form.Label>Entry Limit</Form.Label>
+					<Input {...props} placeholder="10" bind:value={$formData.integration.entry_limit} />
+					<p class="text-muted-foreground text-sm">Sets the maximum number of entries/tasks to process per request.</p>
+				</div>
+			{/snippet}
+		</Form.Control>
+		<Form.FieldErrors />
+	</Form.Field>
 	<Separator />
 	<div class="flex w-full flex-col gap-1.5">
 		<Label for="imap-email">IMAP Email</Label>
