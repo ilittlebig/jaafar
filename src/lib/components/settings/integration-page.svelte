@@ -30,34 +30,46 @@
 		{ value: "captcha-solutions", label: "CaptchaSolutions" },
 	];
 
-  let captchaValue = $state<string>("");
+	let { form, formData }: Props = $props();
 	const selectedCaptcha = $derived(
-    captchaValue
-      ? captchaSolvers.find((captcha: SelectType) => captcha.value === captchaValue)?.label
+			$formData.integration.captcha_solver
+      ? captchaSolvers.find((captcha: SelectType) => captcha.value === $formData.integration.captcha_solver)?.label
       : "Select a captcha solver"
   );
-
-	let { form, formData }: Props = $props();
 </script>
 
 <div class="flex flex-col gap-y-6 h-full">
-	<div class="flex w-full flex-col gap-1.5">
-		<Label>Captcha Solver</Label>
-		<Select.Root type="single" onValueChange={v => (captchaValue = v)}>
-			<Select.Trigger>{selectedCaptcha}</Select.Trigger>
-			<Select.Content>
-				{#each captchaSolvers as captchaSolver}
-					<Select.Item value={captchaSolver.value}>{captchaSolver.label}</Select.Item>
-				{/each}
-			</Select.Content>
-		</Select.Root>
-		<p class="text-muted-foreground text-sm">Required for solving captchas on supported websites.</p>
-	</div>
-	{#if !!captchaValue}
-		<div class="flex w-full flex-col gap-1.5">
-			<Label for="captcha-api-key">Captcha API Key</Label>
-			<Input id="captcha-api-key" />
-		</div>
+	<Form.Field name="integration.captcha_solver" {form}>
+		<Form.Control>
+			{#snippet children({ props })}
+				<div class="flex w-full flex-col gap-1.5">
+					<Form.Label>Captcha Solver</Form.Label>
+					<Select.Root type="single" bind:value={$formData.integration.captcha_solver}>
+						<Select.Trigger {...props}>{selectedCaptcha}</Select.Trigger>
+						<Select.Content>
+							{#each captchaSolvers as captchaSolver}
+								<Select.Item value={captchaSolver.value}>{captchaSolver.label}</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+					<p class="text-muted-foreground text-sm">Required for solving captchas on supported websites.</p>
+				</div>
+			{/snippet}
+		</Form.Control>
+		<Form.FieldErrors />
+	</Form.Field>
+	{#if !!$formData.integration.captcha_solver}
+		<Form.Field name="integration.captcha_solver_api_key" {form}>
+			<Form.Control>
+				{#snippet children({ props })}
+					<div class="flex w-full flex-col gap-1.5">
+						<Form.Label>Captcha API Key</Form.Label>
+						<Input {...props} bind:value={$formData.integration.captcha_solver_api_key} />
+					</div>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors />
+		</Form.Field>
 	{/if}
 	<Separator />
 	<Form.Field name="integration.request_delay" {form}>
@@ -85,18 +97,39 @@
 		<Form.FieldErrors />
 	</Form.Field>
 	<Separator />
-	<div class="flex w-full flex-col gap-1.5">
-		<Label for="imap-email">IMAP Email</Label>
-		<Input type="email" id="imap-email" />
-	</div>
-	<div class="flex w-full flex-col gap-1.5">
-		<Label for="imap-password">IMAP Password</Label>
-		<Input type="password" id="imap-password" />
-	</div>
+	<Form.Field name="integration.imap_email" {form}>
+		<Form.Control>
+			{#snippet children({ props })}
+				<div class="flex w-full flex-col gap-1.5">
+					<Form.Label>IMAP Email</Form.Label>
+					<Input {...props} type="email" bind:value={$formData.integration.imap_email} />
+				</div>
+			{/snippet}
+		</Form.Control>
+		<Form.FieldErrors />
+	</Form.Field>
+	<Form.Field name="integration.imap_password" {form}>
+		<Form.Control>
+			{#snippet children({ props })}
+				<div class="flex w-full flex-col gap-1.5">
+					<Form.Label>IMAP Password</Form.Label>
+					<Input {...props} type="password" bind:value={$formData.integration.imap_password} />
+				</div>
+			{/snippet}
+		</Form.Control>
+		<Form.FieldErrors />
+	</Form.Field>
 	<Separator />
-	<div class="flex w-full flex-col gap-1.5">
-		<Label for="webhook">Webhook</Label>
-		<Input id="webhook" />
-		<p class="text-muted-foreground text-sm">Configure a URL for handling webhook events.</p>
-	</div>
+	<Form.Field name="integration.webhook" {form}>
+		<Form.Control>
+			{#snippet children({ props })}
+				<div class="flex w-full flex-col gap-1.5">
+					<Form.Label>Webhook</Form.Label>
+					<Input {...props} bind:value={$formData.integration.webhook} />
+					<p class="text-muted-foreground text-sm">Configure a URL for handling webhook events.</p>
+				</div>
+			{/snippet}
+		</Form.Control>
+		<Form.FieldErrors />
+	</Form.Field>
 </div>
