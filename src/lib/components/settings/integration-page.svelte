@@ -2,7 +2,6 @@
 	import type { SuperForm } from "sveltekit-superforms";
 	import type { SettingsSchema } from "$lib/schemas/settings";
 	import { Input } from "$lib/components/ui/input";
-  import { Label } from "$lib/components/ui/label";
   import { Separator } from "$lib/components/ui/separator";
 	import * as Select from "$lib/components/ui/select";
 	import * as Form from "$lib/components/ui/form";
