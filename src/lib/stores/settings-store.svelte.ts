@@ -5,7 +5,9 @@
  * Created: 2024-11-28
  */
 
-export let settingsStore: { [key: string]: Record<string, any> } = $state({
+export type Settings = { [key: string]: Record<string, any> };
+
+export let settingsStore: Settings = $state({
 	integration: {
 		captcha_solver: undefined,
 		captcha_solver_api_key: undefined,
