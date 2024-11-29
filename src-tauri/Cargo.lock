@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "Jaafar"
-version = "0.0.3"
+version = "0.0.5"
 dependencies = [
  "cocoa 0.25.0",
  "objc",
@@ -14,6 +14,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
+ "tauri-plugin-fs",
  "tauri-plugin-process",
  "tauri-plugin-shell",
  "tauri-plugin-updater",

@@ -28,7 +28,7 @@
 <Dialog.Root bind:open={signOutDialog.open}>
 	<Dialog.Content class="max-w-[425px]">
 		<Dialog.Header>
-			<Dialog.Title>Confirm Sign-Out</Dialog.Title>
+			<Dialog.Title>Confirm Sign Out</Dialog.Title>
 			<Dialog.Description>
 				Please confirm if you would like to sign out of your account.
 			</Dialog.Description>

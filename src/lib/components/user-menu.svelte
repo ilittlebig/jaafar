@@ -2,6 +2,7 @@
   import { Button } from "$lib/components/ui/button";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { signOutDialog } from "$lib/components/dialogs/auth/sign-out-dialog.svelte";
+	import { settingsDialog } from "$lib/components/dialogs/settings-dialog.svelte";
 </script>
 
 <DropdownMenu.Root>
@@ -27,12 +28,10 @@
       </div>
     </DropdownMenu.Label>
     <DropdownMenu.Separator />
-    <DropdownMenu.Item>Profile</DropdownMenu.Item>
-    <DropdownMenu.Item>
+    <DropdownMenu.Item onSelect={() => settingsDialog.open = true}>
       Settings
       <DropdownMenu.Shortcut>⌘,</DropdownMenu.Shortcut>
     </DropdownMenu.Item>
-    <DropdownMenu.Item>Billing</DropdownMenu.Item>
     <DropdownMenu.Separator />
 		<DropdownMenu.Item onSelect={() => signOutDialog.open = true}>
 			Sign Out
