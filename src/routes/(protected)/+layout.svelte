@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
+	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import Header from "$lib/components/header.svelte";
 	import Sidebar from "$lib/components/sidebar.svelte";
 	import SignOutDialog from "$lib/components/dialogs/auth/sign-out-dialog.svelte";
@@ -16,7 +16,7 @@
   <div class="flex flex-col w-full h-screen min-w-0">
     <Header />
 		<div class="flex bg-muted/40 w-full h-screen overflow-y-scroll">
-			<ScrollArea>
+			<ScrollArea class="w-full">
 				<div class="flex flex-col gap-y-6 h-full p-6">
 					{@render children()}
 				</div>
