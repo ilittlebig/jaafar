@@ -1,12 +1,13 @@
 <script lang="ts">
+	import { getContext } from "svelte";
 	import { Button } from "$lib/components/ui/button";
 	import * as Select from "$lib/components/ui/select";
 
-	let { table } = $props();
+	const { table } = getContext("data-table");
 </script>
 
 <div class="flex items-center justify-between px-2 py-4">
-	<div class="text-muted-foreground flex-1 text-sm">
+	<div class="text-muted-foreground flex-1 text-sm invisible">
 		{0} of {table.getRowCount()} row(s) selected.
 	</div>
 	<div class="flex items-center space-x-8">

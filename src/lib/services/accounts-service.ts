@@ -5,7 +5,7 @@
  * Created: 2024-11-30
  */
 
-import { readFile, writeFileJSON } from "$lib/services/files-service";
+import { readFile, readFileJSON, writeFileJSON } from "$lib/services/files-service";
 import { accountsStore, type Account } from "$lib/stores/accounts-store.svelte";
 import { csvToJson } from "$lib/utils";
 
@@ -66,7 +66,15 @@ const validateAccounts = (accounts: Account[]) => {
 	return validationErrors;
 };
 
-export const loadAccounts = () => {
+export const loadAccounts = async () => {
+  const accounts = await readFileJSON("accounts.json");
+	const validationErrors = validateAccounts(accounts);
+
+	if (Object.keys(validationErrors).length > 0) {
+		console.log("could not load accounts");
+	}
+
+	accounts.forEach((account: Account) => accountsStore.push(account));
 }
 
 export const importAccounts = async (filePath: string): Promise<Record<number, string[]>> => {

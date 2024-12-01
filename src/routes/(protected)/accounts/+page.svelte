@@ -2,9 +2,9 @@
 	import { accountsStore } from "$lib/stores/accounts-store.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
-	import AccountsTable from "$lib/components/tables/accounts-table/data-table.svelte";
-	import { columns } from "$lib/components/tables/accounts-table/columns";
+	import { DataTable } from "$lib/components/data-table";
 	import ImportAccountsDialog, { importAccountsDialog } from "$lib/components/dialogs/import-accounts-dialog.svelte";
+	import { columns } from "./columns";
 </script>
 
 <div class="flex flex-col gap-y-2 w-full">
@@ -15,7 +15,7 @@
 				<Button variant="outline">
 					<i class="fa-regular fa-cog"></i>
 				</Button>
-				<Button variant="outline">
+				<Button variant="outline" class="hidden">
 					<i class="fa-regular fa-download"></i>
 					Export
 				</Button>
@@ -27,7 +27,10 @@
 
 {#if accountsStore.length > 0}
 	<ScrollArea orientation="horizontal" class="w-full">
-		<AccountsTable data={accountsStore} {columns} />
+		<DataTable.Provider data={accountsStore} {columns}>
+			<DataTable.Table />
+			<DataTable.Pagination />
+		</DataTable.Provider>
 	</ScrollArea>
 {:else}
 	<div class="flex flex-col gap-y-4 items-center justify-center h-full">
