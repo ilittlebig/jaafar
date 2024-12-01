@@ -2,7 +2,8 @@
 	import { accountsStore } from "$lib/stores/accounts-store.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
-	import AccountsTable from "$lib/components/accounts-table.svelte";
+	import AccountsTable from "$lib/components/tables/accounts-table/data-table.svelte";
+	import { columns } from "$lib/components/tables/accounts-table/columns";
 	import ImportAccountsDialog, { importAccountsDialog } from "$lib/components/dialogs/import-accounts-dialog.svelte";
 </script>
 
@@ -26,7 +27,7 @@
 
 {#if accountsStore.length > 0}
 	<ScrollArea orientation="horizontal" class="w-full">
-		<AccountsTable />
+		<AccountsTable data={accountsStore} {columns} />
 	</ScrollArea>
 {:else}
 	<div class="flex flex-col gap-y-4 items-center justify-center h-full">
