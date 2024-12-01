@@ -15,6 +15,8 @@
 	};
 
   let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
+	let columnVisibility = $state({});
+
 	let {
 		data,
 		columns,
@@ -30,7 +32,17 @@
       get pagination() {
         return pagination;
       },
+			get columnVisibility() {
+				return columnVisibility;
+			},
     },
+		onColumnVisibilityChange: updater => {
+      if (typeof updater === "function") {
+        columnVisibility = updater(columnVisibility);
+      } else {
+        columnVisibility = updater;
+      }
+		},
     onPaginationChange: updater => {
       if (typeof updater === "function") {
         pagination = updater(pagination);
