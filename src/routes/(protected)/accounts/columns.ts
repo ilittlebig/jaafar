@@ -28,6 +28,7 @@ export const columns: ColumnDef<Account>[] = [
   {
     accessorKey: "email",
     header: "Email",
+		enableHiding: false,
   },
   {
     accessorKey: "firstname",
