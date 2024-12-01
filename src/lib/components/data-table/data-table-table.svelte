@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { getContext } from "svelte";
+	import type { Table as TableType } from "@tanstack/table-core";
+	import type { Account } from "$lib/stores/accounts-store.svelte";
 	import { FlexRender } from "$lib/components/ui/data-table";
 	import * as Table from "$lib/components/ui/table";
 
-	const { table } = getContext("data-table");
+	interface Props {
+		table: TableType<Account>;
+	}
+
+	const { table }: Props = getContext("data-table");
 </script>
 
 <div class="rounded-md border">

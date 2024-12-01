@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { getContext } from "svelte";
+	import type { Table as TableType } from "@tanstack/table-core";
+	import type { Account } from "$lib/stores/accounts-store.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import * as Select from "$lib/components/ui/select";
 
-	const { table } = getContext("data-table");
+	interface Props {
+		table: TableType<Account>;
+	}
+
+	const { table }: Props = getContext("data-table");
 </script>
 
 <div class="flex items-center justify-between px-2 py-4">
@@ -16,7 +22,7 @@
 			<Select.Root
 			 type="single"
 			 name="visibleRows"
-			 onValueChange={v => table.setPageSize(v)}
+			 onValueChange={v => table.setPageSize(+v)}
 			>
 				<Select.Trigger class="h-8 w-[70px]">
 					{table.getState().pagination.pageSize}
