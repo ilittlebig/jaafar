@@ -1,7 +1,3 @@
-<script module>
-	export let importValidationErrorsDialog = $state({ open: true });
-</script>
-
 <script lang="ts">
 	import { Button } from "$lib/components/ui/button";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
@@ -21,7 +17,7 @@
 	);
 </script>
 
-<Dialog.Root bind:open={importValidationErrorsDialog.open}>
+<Dialog.Root>
 	<Dialog.Trigger>
 		{#snippet child({ props })}
 			<Button {...props} variant="link" class="inline-block text-sm h-4 py-0 px-0 font-normal leading-none">

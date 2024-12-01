@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { accountsStore } from "$lib/stores/accounts-store.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import AccountsTable from "$lib/components/accounts-table.svelte";
@@ -9,7 +10,7 @@
 	<div class="flex justify-between items-center">
 		<h1 class="font-semibold text-2xl">Accounts</h1>
 		<div class="flex gap-x-2 justify-end">
-			{#if false}
+			{#if accountsStore.length > 0}
 				<Button variant="outline">
 					<i class="fa-regular fa-cog"></i>
 				</Button>
@@ -23,7 +24,7 @@
 	</div>
 </div>
 
-{#if false}
+{#if accountsStore.length > 0}
 	<ScrollArea orientation="horizontal" class="w-full">
 		<AccountsTable />
 	</ScrollArea>

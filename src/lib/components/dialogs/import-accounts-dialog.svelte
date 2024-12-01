@@ -1,5 +1,5 @@
 <script module>
-	export let importAccountsDialog = $state({ open: true });
+	export let importAccountsDialog = $state({ open: false });
 </script>
 
 <script lang="ts">
