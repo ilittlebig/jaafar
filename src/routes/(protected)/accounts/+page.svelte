@@ -28,12 +28,7 @@
 {#if accountsStore.length > 0}
 	<ScrollArea orientation="horizontal" class="w-full">
 		<DataTable.Provider data={accountsStore} {columns}>
-			<div class="flex flex-col gap-y-4">
-				<DataTable.Toolbar>
-					<DataTable.ViewOptions />
-				</DataTable.Toolbar>
-				<DataTable.Table />
-			</div>
+			<DataTable.Table />
 			<DataTable.Pagination />
 		</DataTable.Provider>
 	</ScrollArea>
