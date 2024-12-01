@@ -1,3 +1,43 @@
-<div class="flex items-center">
-  <h1 class="font-semibold text-2xl">Proxies</h1>
+<script lang="ts">
+	import { proxiesStore } from "$lib/stores/proxies-store.svelte";
+	import { importProxies } from "$lib/services/proxies-service";
+	import { Button } from "$lib/components/ui/button";
+	import { ScrollArea } from "$lib/components/ui/scroll-area";
+	import { DataTable } from "$lib/components/data-table";
+	import ImportDialog, { importDialog } from "$lib/components/dialogs/import-dialog.svelte";
+	import { columns } from "./columns";
+</script>
+
+<div class="flex flex-col gap-y-2 w-full">
+	<div class="flex justify-between">
+		<h1 class="font-semibold text-2xl">Proxies</h1>
+		<div class="flex gap-x-2 justify-end">
+			<ImportDialog extension="txt" onImport={importProxies}>
+				Import Proxies
+			</ImportDialog>
+		</div>
+	</div>
 </div>
+
+{#if proxiesStore.length > 0}
+	<ScrollArea orientation="horizontal" class="w-full">
+		<DataTable.Provider data={proxiesStore} {columns}>
+			<DataTable.Table />
+			<DataTable.Pagination />
+		</DataTable.Provider>
+	</ScrollArea>
+{:else}
+	<div class="flex flex-col gap-y-4 items-center justify-center h-full">
+		<img src="/images/add_proxy.svg" width={200} height={200} alt="Import Proxies Illustration" />
+		<div class="flex flex-col gap-y-1 items-center">
+			<p class="font-semibold">No Proxies Found</p>
+			<p class="max-w-[350px] text-center text-sm text-muted-foreground">
+				You do not have any proxies yet. Click the import button to add proxies.
+			</p>
+		</div>
+		<Button onclick={() => importDialog.open = true}>
+			<i class="fa-regular fa-file-import"></i>
+			Import Proxies
+		</Button>
+	</div>
+{/if}

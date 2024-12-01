@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { accountsStore } from "$lib/stores/accounts-store.svelte";
+	import { importAccounts } from "$lib/services/accounts-service";
 	import { Button } from "$lib/components/ui/button";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import { DataTable } from "$lib/components/data-table";
-	import ImportAccountsDialog, { importAccountsDialog } from "$lib/components/dialogs/import-accounts-dialog.svelte";
+	import ImportDialog, { importDialog } from "$lib/components/dialogs/import-dialog.svelte";
 	import { columns } from "./columns";
 </script>
 
 <div class="flex flex-col gap-y-2 w-full">
-	<div class="flex justify-between items-center">
+	<div class="flex justify-between">
 		<h1 class="font-semibold text-2xl">Accounts</h1>
 		<div class="flex gap-x-2 justify-end">
 			{#if accountsStore.length > 0}
@@ -20,7 +21,9 @@
 					Export
 				</Button>
 			{/if}
-			<ImportAccountsDialog />
+			<ImportDialog extension="csv" onImport={importAccounts}>
+				Import Accounts
+			</ImportDialog>
 		</div>
 	</div>
 </div>
@@ -41,7 +44,7 @@
 				You do not have any accounts yet. Click the import button to add accounts.
 			</p>
 		</div>
-		<Button onclick={() => importAccountsDialog.open = true}>
+		<Button onclick={() => importDialog.open = true}>
 			<i class="fa-regular fa-file-import"></i>
 			Import Accounts
 		</Button>

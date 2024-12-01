@@ -68,6 +68,7 @@ const validateAccounts = (accounts: Account[]) => {
 
 export const loadAccounts = async () => {
   const accounts = await readFileJSON("accounts.json");
+	if (!accounts) return;
 	const validationErrors = validateAccounts(accounts);
 
 	if (Object.keys(validationErrors).length > 0) {
