@@ -46,18 +46,18 @@ const readCsvContent = async (filePath: string) => {
 }
 
 const parseCsvToJson = async (csvContent: string) => {
-	let csvJson: Account[];
+	let accounts: Account[];
   try {
-    csvJson = await csvToJson(csvContent);
+    accounts = await csvToJson(csvContent);
   } catch (err) {
     throw new Error("Invalid CSV format. Ensure the file is properly formatted.");
   }
-	return csvJson;
+	return accounts;
 }
 
-const validateCsvData = (csvJson: Account[]) => {
+const validateAccounts = (accounts: Account[]) => {
   const validationErrors: Record<number, string[]> = [];
-  csvJson.forEach((account: Account, index: number) => {
+  accounts.forEach((account: Account, index: number) => {
 		const errors = validateAccount(account);
     if (errors.length > 0) {
       validationErrors[index + 1] = errors;
@@ -71,12 +71,12 @@ export const loadAccounts = () => {
 
 export const importAccounts = async (filePath: string): Promise<Record<number, string[]>> => {
 	const csvContent = await readCsvContent(filePath);
-	const csvJson = await parseCsvToJson(csvContent);
-	const validationErrors = validateCsvData(csvJson);
+	const accounts = await parseCsvToJson(csvContent);
+	const validationErrors = validateAccounts(accounts);
 
 	if (Object.keys(validationErrors).length === 0) {
-		await writeFileJSON("accounts.json", csvJson);
-		csvJson.forEach((account: Account) => accountsStore.push(account));
+		await writeFileJSON("accounts.json", accounts);
+		accounts.forEach((account: Account) => accountsStore.push(account));
 	}
 
 	return validationErrors;
