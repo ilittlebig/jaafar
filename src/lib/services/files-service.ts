@@ -5,22 +5,42 @@
  * Created: 2024-11-28
  */
 
-import { appDataDir, BaseDirectory } from "@tauri-apps/api/path";
+import { resolve, dirname, appDataDir, BaseDirectory } from "@tauri-apps/api/path";
 import {
   mkdir,
   writeTextFile,
   readTextFile,
   exists,
 } from "@tauri-apps/plugin-fs";
+import { open } from "@tauri-apps/plugin-dialog";
+
+interface Filter {
+	name: string;
+	extensions: string[];
+}
+
+interface SelectFileOptions {
+	multiple?: boolean;
+	directory?: boolean;
+	filters?: Filter[];
+}
+
+const isAbsolutePath = (path: string): boolean => {
+  return path.startsWith("/") || /^[a-zA-Z]:[\\/]/.test(path);
+};
 
 export const writeFile = async (fileName: string, data: any) => {
   try {
-    const appDirExists = await exists("", { baseDir: BaseDirectory.AppData });
-    if (!appDirExists) {
-      const appDataDirPath = await appDataDir();
-      await mkdir(appDataDirPath);
-    }
-    writeTextFile(fileName, data, { baseDir: BaseDirectory.AppData });
+		const appDataPath = await appDataDir();
+		const filePath = isAbsolutePath(fileName)
+      ? fileName
+      : await resolve(appDataPath, fileName);
+
+    const directory = await dirname(filePath);
+    const dirExists = await exists(directory);
+
+    if (!dirExists) await mkdir(directory, { recursive: true });
+    await writeTextFile(filePath, data);
   } catch (err) {
     console.log("Could not write to file: " + fileName, err)
   }
@@ -34,24 +54,14 @@ export const writeFileJSON = async (fileName: string, data: any) => {
   }
 }
 
-export const writeFileToPath = async (fileName: string, data: any) => {
-  try {
-    writeTextFile(fileName, data, { baseDir: BaseDirectory.Home });
-  } catch (err) {
-    console.log("Could not write to file: " + fileName, err)
-  }
-}
-
 export const readFile = async (fileName: string) => {
   try {
     const fileExists = await exists(fileName, { baseDir: BaseDirectory.AppData });
     if (!fileExists) return;
 
-    const fileContent = await readTextFile(
-      fileName,
-      { baseDir: BaseDirectory.AppData }
-    );
-    return fileContent;
+    return await readTextFile(fileName, {
+			baseDir: BaseDirectory.AppData
+		});
   } catch (err) {
     console.log("Could not read file: " + fileName, err)
   }
@@ -65,4 +75,13 @@ export const readFileJSON = async (fileName: string) => {
   } catch (err) {
     console.log("Could not read JSON file: " + fileName, err)
   }
+}
+
+export const selectFile = async (options: SelectFileOptions) => {
+	const filePath = await open({
+		multiple: options.multiple,
+		directory: options.directory,
+		filters: options.filters,
+	});
+	return filePath;
 }
