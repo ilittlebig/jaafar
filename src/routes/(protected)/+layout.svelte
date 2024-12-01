@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from "svelte";
+	import { loadAccounts } from "$lib/services/accounts-service";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import Header from "$lib/components/header.svelte";
 	import Sidebar from "$lib/components/sidebar.svelte";
@@ -6,6 +8,10 @@
 	import SettingsDialog from "$lib/components/dialogs/settings-dialog.svelte";
 
 	let { children } = $props();
+
+	onMount(async () => {
+		await loadAccounts();
+	});
 </script>
 
 <SignOutDialog />
