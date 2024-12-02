@@ -17,6 +17,10 @@
 
 	const data = { name: "", file: undefined };
 
+	const onsubmit = async (formData: any) => {
+		await addProxyGroup(formData);
+	}
+
 	const onsuccess = () => {
 		newProxyGroupDialog.open = false;
 	}
@@ -37,7 +41,7 @@
 		<FormComponent
 			{data} 
 			{fields}
-			onsubmit={addProxyGroup}
+			{onsubmit}
 			{onsuccess}
 			schema={addProxyGroupFormSchema}
 		>

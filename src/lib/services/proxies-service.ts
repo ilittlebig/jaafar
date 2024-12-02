@@ -35,14 +35,12 @@ export const addProxyGroup = async ({ name, file: filePath }: ProxyGroup) => {
 
 	const existingFile = await readFile(`proxies/${trimmedName}.json`);
   if (existingFile) {
-    console.log("File already exists for this proxy group");
-    return;
+    throw new Error("A file already exists for this proxy group");
   }
 
 	const proxiesContent = await readFile(filePath);
   if (!proxiesContent) {
-    console.log("Invalid proxy file content");
-    return;
+    throw new Error("Invalid proxy file content");
   }
 
 	const proxies = proxiesContent
