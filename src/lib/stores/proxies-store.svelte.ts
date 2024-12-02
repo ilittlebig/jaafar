@@ -9,6 +9,7 @@ export interface ProxyGroup {
 	name: string;
 	file: string;
 	originalFilePath: string;
+	amount: number;
 }
 
 export interface ProxyStore {

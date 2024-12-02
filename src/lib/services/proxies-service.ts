@@ -57,6 +57,7 @@ export const addProxyGroup = async ({ name, file: filePath }: ProxyGroup) => {
 		name: trimmedName,
 		file: `proxies/${trimmedName}.json`,
 		originalFilePath: filePath,
+		amount: proxies.length,
 	};
   metadata.push(newGroup);
 
