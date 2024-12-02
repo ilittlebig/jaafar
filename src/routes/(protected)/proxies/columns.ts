@@ -21,6 +21,13 @@ const rowActionsCellSnippet = createRawSnippet(() => {
 	};
 });
 
+const amountCellSnippet = createRawSnippet<[string]>((getAmount) => {
+	const amount = getAmount();
+	return {
+		render: () => `<div class="font-medium">${amount}</div>`,
+	};
+});
+
 export const columns: ColumnDef<ProxyGroup>[] = [
   {
     accessorFn: (row: ProxyGroup) => row.name,
@@ -28,7 +35,19 @@ export const columns: ColumnDef<ProxyGroup>[] = [
   },
   {
     accessorFn: (row: ProxyGroup) => row.originalFilePath,
-    header: "Original File Path",
+    header: "File Path",
+  },
+  {
+		id: "amount",
+    accessorFn: (row: ProxyGroup) => row.amount,
+    header: "Amount of Proxies",
+		cell: ({ row }) => {
+			const formatter = new Intl.NumberFormat("en-US");
+			return renderSnippet(
+				amountCellSnippet,
+				formatter.format(parseFloat(row.getValue("amount")))
+			);
+    },
   },
   {
 		id: "actions",
