@@ -29,7 +29,7 @@
 					{...props}
 					variant="ghost"
 					size="icon"
-					class={cn(isActive ?? "bg-muted", "rounded-lg")}
+					class={cn(isActive && "bg-muted", "rounded-lg")}
 					href={navigation.href}
 					aria-label={navigation.label}
 				>

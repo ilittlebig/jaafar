@@ -12,6 +12,22 @@
 	import { Input } from "$lib/components/ui/input";
 	import { Button } from "$lib/components/ui/button";
 	import * as Form from "$lib/components/ui/form";
+	import * as Select from "$lib/components/ui/select";
+
+	// Helper function for determining of a select value is a group
+	function isValueGroup(value: ValueObj | ValueGroup): value is ValueGroup {
+		return (value as ValueGroup).group !== undefined;
+	}
+
+	type ValueObj = {
+		value: string;
+		label: string;
+	}
+
+	type ValueGroup = {
+		group: string;
+		options: ValueObj[];
+	};
 
 	interface Field {
 		name: string;
@@ -21,6 +37,8 @@
 		extensions?: string[];
 		type?: string;
 		component?: Component;
+		values?: (ValueObj | ValueGroup)[];
+		allowDeselect?: boolean;
 	}
 
 	interface Props {
@@ -92,6 +110,31 @@
 						<Button variant="outline" class="w-full" onclick={() => handleSelectFile(field)}>
 							{$formData[field.name] || "Select File"}
 						</Button>
+					{:else if field.type === "select" && field.values}
+						<Select.Root type="single" bind:value={$formData[field.name]} allowDeselect={field.allowDeselect}>
+							<Select.Trigger {...props}>
+								{field.values
+									.flatMap(obj => isValueGroup(obj) ? obj.options : [obj])
+									.find((obj: ValueObj) => obj.value === $formData[field.name])?.label ||
+									field.placeholder || "Select"}
+							</Select.Trigger>
+							<Select.Content>
+								{#each field.values as obj}
+									{#if isValueGroup(obj)}
+										<Select.Group>
+											<Select.GroupHeading>{obj.group}</Select.GroupHeading>
+											{#each obj.options as option}
+												<Select.Item value={option.value} class="pl-12">
+													{option.label}
+												</Select.Item>
+											{/each}
+										</Select.Group>
+									{:else}
+										<Select.Item value={obj.value}>{obj.label}</Select.Item>
+									{/if}
+								{/each}
+							</Select.Content>
+						</Select.Root>
 					{:else}
 						<Input
 							{...props}
