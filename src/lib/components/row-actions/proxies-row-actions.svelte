@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { buttonVariants } from "$lib/components/ui/button";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+	import { deleteDialog } from "$lib/components/dialogs/delete-dialog.svelte";
 </script>
 
 <DropdownMenu.Root>
@@ -16,6 +17,8 @@
 	<DropdownMenu.Content align="end">
 		<DropdownMenu.Label>Actions</DropdownMenu.Label>
 		<DropdownMenu.Item>View proxies</DropdownMenu.Item>
-		<DropdownMenu.Item>Delete</DropdownMenu.Item>
+		<DropdownMenu.Item onclick={() => deleteDialog.open = true}>
+			Delete
+		</DropdownMenu.Item>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
