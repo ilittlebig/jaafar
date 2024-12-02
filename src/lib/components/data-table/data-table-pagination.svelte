@@ -55,8 +55,7 @@
 				onclick={() => table.previousPage()}
 				disabled={!table.getCanPreviousPage()}
 			>
-				<i class="fa-regular fa-chevron-left"></i>
-				<span class="sr-only">Go to previous page</span>
+				Previous
 			</Button>
 			<Button
 				variant="outline"
@@ -64,8 +63,7 @@
 				onclick={() => table.nextPage()}
 				disabled={!table.getCanNextPage()}
 			>
-				<i class="fa-regular fa-chevron-right"></i>
-				<span class="sr-only">Go to next page</span>
+				Next
 			</Button>
 			<Button
 				variant="outline"
