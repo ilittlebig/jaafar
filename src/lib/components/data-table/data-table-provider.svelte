@@ -3,6 +3,7 @@
 	import {
 		type ColumnDef,
 		type PaginationState,
+		type VisibilityState,
 		getCoreRowModel,
     getPaginationRowModel,
 	} from "@tanstack/table-core";
@@ -15,7 +16,7 @@
 	};
 
   let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
-	let columnVisibility = $state({});
+	let columnVisibility = $state<VisibilityState>({});
 
 	let {
 		data,
@@ -27,7 +28,9 @@
 		get data() {
       return data;
     },
-    columns,
+		get columns() {
+			return columns;
+		},
     state: {
       get pagination() {
         return pagination;

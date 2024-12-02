@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { proxiesStore } from "$lib/stores/proxies-store.svelte";
-	import { importProxies } from "$lib/services/proxies-service";
 	import { Button } from "$lib/components/ui/button";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import { DataTable } from "$lib/components/data-table";
-	import ImportDialog, { importDialog } from "$lib/components/dialogs/import-dialog.svelte";
+	import NewProxGroupDialog, { newProxyGroupDialog } from "$lib/components/dialogs/new-proxy-group-dialog.svelte";
 	import { columns } from "./columns";
 </script>
 
@@ -12,16 +11,14 @@
 	<div class="flex justify-between">
 		<h1 class="font-semibold text-2xl">Proxies</h1>
 		<div class="flex gap-x-2 justify-end">
-			<ImportDialog extension="txt" onImport={importProxies}>
-				Import Proxies
-			</ImportDialog>
+			<NewProxGroupDialog />
 		</div>
 	</div>
 </div>
 
-{#if proxiesStore.length > 0}
+{#if proxiesStore.groups.length > 0}
 	<ScrollArea orientation="horizontal" class="w-full">
-		<DataTable.Provider data={proxiesStore} {columns}>
+		<DataTable.Provider data={proxiesStore.groups} {columns}>
 			<DataTable.Table />
 			<DataTable.Pagination />
 		</DataTable.Provider>
@@ -32,12 +29,12 @@
 		<div class="flex flex-col gap-y-1 items-center">
 			<p class="font-semibold">No Proxies Found</p>
 			<p class="max-w-[350px] text-center text-sm text-muted-foreground">
-				You do not have any proxies yet. Click the import button to add proxies.
+				You have not added any proxies yet. Click the button to add proxies.
 			</p>
 		</div>
-		<Button onclick={() => importDialog.open = true}>
-			<i class="fa-regular fa-file-import"></i>
-			Import Proxies
+		<Button onclick={() => newProxyGroupDialog.open = true}>
+			<i class="fa-regular fa-pen"></i>
+			Create Proxy Group
 		</Button>
 	</div>
 {/if}

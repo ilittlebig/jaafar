@@ -75,7 +75,7 @@ export const loadAccounts = async () => {
 		console.log("could not load accounts");
 	}
 
-	accounts.forEach((account: Account) => accountsStore.push(account));
+	accountsStore.accounts = [ ...accounts ];
 }
 
 export const importAccounts = async (filePath: string): Promise<Record<number, string[]>> => {
@@ -85,7 +85,7 @@ export const importAccounts = async (filePath: string): Promise<Record<number, s
 
 	if (Object.keys(validationErrors).length === 0) {
 		await writeFileJSON("accounts.json", accounts);
-		accounts.forEach((account: Account) => accountsStore.push(account));
+		accountsStore.accounts = [ ...accounts ];
 	}
 
 	return validationErrors;

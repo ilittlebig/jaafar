@@ -12,7 +12,7 @@
 	<div class="flex justify-between">
 		<h1 class="font-semibold text-2xl">Accounts</h1>
 		<div class="flex gap-x-2 justify-end">
-			{#if accountsStore.length > 0}
+			{#if accountsStore.accounts.length > 0}
 				<Button variant="outline">
 					<i class="fa-regular fa-cog"></i>
 				</Button>
@@ -28,9 +28,9 @@
 	</div>
 </div>
 
-{#if accountsStore.length > 0}
+{#if accountsStore.accounts.length > 0}
 	<ScrollArea orientation="horizontal" class="w-full">
-		<DataTable.Provider data={accountsStore} {columns}>
+		<DataTable.Provider data={accountsStore.accounts} {columns}>
 			<DataTable.Table />
 			<DataTable.Pagination />
 		</DataTable.Provider>
