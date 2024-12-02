@@ -5,4 +5,16 @@
  * Created: 2024-12-01
  */
 
-export let proxiesStore: string[] = $state([]);
+export interface ProxyGroup {
+	name: string;
+	file: string;
+	originalFilePath: string;
+}
+
+export interface ProxyStore {
+	groups: ProxyGroup[];
+}
+
+export let proxiesStore: ProxyStore = $state({
+	groups: [],
+});

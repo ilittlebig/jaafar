@@ -8,13 +8,17 @@
 		type Infer,
 	} from "sveltekit-superforms";
 	import { zodClient } from "sveltekit-superforms/adapters";
+	import { selectFile } from "$lib/services/files-service";
 	import { Input } from "$lib/components/ui/input";
+	import { Button } from "$lib/components/ui/button";
 	import * as Form from "$lib/components/ui/form";
 
 	interface Field {
 		name: string;
 		label: string;
 		placeholder?: string;
+		description?: string;
+		extensions?: string[];
 		type?: string;
 		component?: Component;
 	}
@@ -24,7 +28,7 @@
 		onsuccess?: () => void;
 		fields: Field[];
 		schema: z.ZodTypeAny;
-		data: Record<string, string>;
+		data: Record<string, string | undefined>;
 		children: Snippet<[boolean]>;
 	}
 
@@ -36,6 +40,16 @@
 		data,
 		children,
 	}: Props = $props();
+
+	const handleSelectFile = async (field: Field) => {
+		const filePath = await selectFile({
+			multiple: false,
+			directory: false,
+			filters: field.extensions ? [{ name: "extension", extensions: field.extensions }] : [],
+		});
+		if (!filePath) return;
+		$formData[field.name] = filePath;
+	}
 
   const handleValidForm = async (form: SuperValidated<Infer<typeof schema>>) => {
     const formData = form.data;
@@ -74,14 +88,23 @@
 						<Form.Label>{field.label}</Form.Label>
 					{/if}
 
-					<Input
-						{...props}
-						type={field.type}
-						placeholder={field.placeholder}
-						bind:value={$formData[field.name]}
-					/>
+					{#if field.type === "file"}
+						<Button variant="outline" class="w-full" onclick={() => handleSelectFile(field)}>
+							{$formData[field.name] || "Select File"}
+						</Button>
+					{:else}
+						<Input
+							{...props}
+							type={field.type}
+							placeholder={field.placeholder}
+							bind:value={$formData[field.name]}
+						/>
+					{/if}
 				{/snippet}
 			</Form.Control>
+			{#if field.description}
+				<Form.Description>{field.description}</Form.Description>
+			{/if}
 			<Form.FieldErrors />
 		</Form.Field>
 	{/each}

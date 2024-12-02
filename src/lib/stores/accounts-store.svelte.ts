@@ -17,4 +17,10 @@ export interface Account {
   country: string;
 }
 
-export let accountsStore: Account[] = $state([]);
+export interface AccountStore {
+	accounts: Account[];
+}
+
+export let accountsStore: AccountStore = $state({
+	accounts: [],
+});
