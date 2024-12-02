@@ -28,7 +28,7 @@
 
 <Dialog.Root bind:open={newProxyGroupDialog.open}>
 	<Dialog.Trigger class={buttonVariants({ variant: "default" })}>
-		<i class="fa-regular fa-pen"></i>
+		<i class="fa-regular fa-plus"></i>
 		New Proxy Group
 	</Dialog.Trigger>
 	<Dialog.Content class="max-w-[425px]">

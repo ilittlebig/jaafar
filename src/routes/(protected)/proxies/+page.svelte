@@ -40,7 +40,7 @@
 			</p>
 		</div>
 		<Button onclick={() => newProxyGroupDialog.open = true}>
-			<i class="fa-regular fa-pen"></i>
+			<i class="fa-regular fa-plus"></i>
 			Create Proxy Group
 		</Button>
 	</div>
