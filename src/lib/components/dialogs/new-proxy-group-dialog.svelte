@@ -11,7 +11,7 @@
 	import FormComponent from "$lib/components/auth/form-component.svelte";
 
 	const fields = [
-		{ name: "name", label: "Name", description: "Shows up when you need to select a proxy group." },
+		{ name: "name", label: "Name", description: "Shows up when you need to select proxies." },
 		{ name: "file", label: "File", type: "file", extensions: ["txt"] },
 	];
 
@@ -29,13 +29,13 @@
 <Dialog.Root bind:open={newProxyGroupDialog.open}>
 	<Dialog.Trigger class={buttonVariants({ variant: "default" })}>
 		<i class="fa-regular fa-pen"></i>
-		Add Proxy Group
+		New Proxy Group
 	</Dialog.Trigger>
 	<Dialog.Content class="max-w-[425px]">
 		<Dialog.Header>
-			<Dialog.Title>Add Proxy Group</Dialog.Title>
+			<Dialog.Title>New Proxy Group</Dialog.Title>
 			<Dialog.Description>
-				Provide a name for your new proxy group and upload a text file containing the proxies.
+				Provide a name for your new group and select a text file containing the proxies.
 			</Dialog.Description>
 		</Dialog.Header>
 		<FormComponent
@@ -47,7 +47,7 @@
 		>
 			{#snippet children(submitting)}
 				<div class="flex justify-end">
-					<Form.Button disabled={submitting}>Add Proxy Group</Form.Button>
+					<Form.Button disabled={submitting}>Create Group</Form.Button>
 				</div>
 			{/snippet}
 		</FormComponent>
