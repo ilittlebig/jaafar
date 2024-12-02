@@ -10,6 +10,7 @@ import type { ColumnDef } from "@tanstack/table-core";
 import type { Account } from "$lib/stores/accounts-store.svelte";
 import { renderSnippet } from "$lib/components/ui/data-table";
 import { DataTable } from "$lib/components/data-table";
+import AccountsRowActions from "$lib/components/row-actions/accounts-row-actions.svelte";
 
 const badgeCellSnippet = createRawSnippet<[string]>(getValue => {
 	const value = getValue();
@@ -19,6 +20,16 @@ const badgeCellSnippet = createRawSnippet<[string]>(getValue => {
 			const comp = mount(DataTable.BadgeCell, { target, props: {
 				value, variant: "outline"
 			}});
+			return () => unmount(comp);
+		}
+	};
+});
+
+const rowActionsCellSnippet = createRawSnippet(() => {
+	return {
+		render: () => `<div class="flex justify-end"></div>`,
+		setup: (target) => {
+			const comp = mount(AccountsRowActions, { target });
 			return () => unmount(comp);
 		}
 	};
@@ -89,5 +100,12 @@ export const columns: ColumnDef<Account>[] = [
   {
     accessorKey: "country",
     header: "Country",
+  },
+  {
+		id: "actions",
+    header: "",
+		cell: ({ row }) => {
+      return renderSnippet(rowActionsCellSnippet, row.original);
+    },
   },
 ];
