@@ -9,6 +9,6 @@
     class="rounded-lg z-20"
     aria-label="Notifications"
   >
-		<i class="fa-regular fa-bell text-lg"></i>
+		<i class="fa-solid fa-bell text-lg"></i>
   </Button>
 </header>

@@ -5,12 +5,14 @@
  * Created: 2024-12-02
  */
 
+export type SignupStatus = "not_started" | "running" | "completed";
+export type SignupMode = "auto_confirm" | "manual_confirm";
+
 export interface Signup {
-	status: string;
+	status: SignupStatus;
 	product: string;
 	proxyGroup: string;
-	amountOfAccounts: number;
-	mode: "auto_confirm" | "manual_confirm";
+	mode: SignupMode;
 }
 
 export interface SignupsStore {

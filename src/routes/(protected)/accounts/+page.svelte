@@ -29,12 +29,12 @@
 </div>
 
 {#if accountsStore.accounts.length > 0}
-	<ScrollArea orientation="horizontal" class="w-full">
-		<DataTable.Provider data={accountsStore.accounts} {columns}>
+	<DataTable.Provider data={accountsStore.accounts} {columns}>
+		<ScrollArea orientation="horizontal" class="w-full">
 			<DataTable.Table />
-			<DataTable.Pagination />
-		</DataTable.Provider>
-	</ScrollArea>
+		</ScrollArea>
+		<DataTable.Pagination />
+	</DataTable.Provider>
 {:else}
 	<div class="flex flex-col gap-y-4 items-center justify-center h-full">
 		<img src="/images/add_document.svg" width={200} height={200} alt="Import Accounts Illustration" />

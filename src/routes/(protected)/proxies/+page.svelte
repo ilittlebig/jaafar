@@ -4,15 +4,8 @@
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import { DataTable } from "$lib/components/data-table";
 	import NewProxyGroupDialog, { newProxyGroupDialog } from "$lib/components/dialogs/new-proxy-group-dialog.svelte";
-	import DeleteDialog from "$lib/components/dialogs/delete-dialog.svelte";
 	import { columns } from "./columns";
 </script>
-
-<DeleteDialog
-	title="Delete Proxy Group"
-	description="Are you sure you want to delete this proxy group? This action is irreversible."
-	actionLabel="Delete Group"
-/>
 
 <div class="flex flex-col gap-y-2 w-full">
 	<div class="flex justify-between">
@@ -24,12 +17,12 @@
 </div>
 
 {#if proxiesStore.groups.length > 0}
-	<ScrollArea orientation="horizontal" class="w-full">
-		<DataTable.Provider data={proxiesStore.groups} {columns}>
+	<DataTable.Provider data={proxiesStore.groups} {columns}>
+		<ScrollArea orientation="horizontal" class="w-full">
 			<DataTable.Table />
-			<DataTable.Pagination />
-		</DataTable.Provider>
-	</ScrollArea>
+		</ScrollArea>
+		<DataTable.Pagination />
+	</DataTable.Provider>
 {:else}
 	<div class="flex flex-col gap-y-4 items-center justify-center h-full">
 		<img src="/images/add_proxy.svg" width={200} height={200} alt="Import Proxies Illustration" />

@@ -11,23 +11,6 @@ import type { ColumnDef } from "@tanstack/table-core";
 import { renderSnippet } from "$lib/components/ui/data-table";
 import ProxiesRowActions from "$lib/components/row-actions/proxies-row-actions.svelte";
 
-const rowActionsCellSnippet = createRawSnippet(() => {
-	return {
-		render: () => `<div class="flex justify-end"></div>`,
-		setup: (target) => {
-			const comp = mount(ProxiesRowActions, { target });
-			return () => unmount(comp);
-		}
-	};
-});
-
-const amountCellSnippet = createRawSnippet<[string]>((getAmount) => {
-	const amount = getAmount();
-	return {
-		render: () => `<div class="font-medium">${amount}</div>`,
-	};
-});
-
 export const columns: ColumnDef<ProxyGroup>[] = [
   {
     accessorFn: (row: ProxyGroup) => row.name,
@@ -43,6 +26,13 @@ export const columns: ColumnDef<ProxyGroup>[] = [
     header: "Amount of Proxies",
 		cell: ({ row }) => {
 			const formatter = new Intl.NumberFormat("en-US");
+			const amountCellSnippet = createRawSnippet<[string]>(getAmount => {
+				const amount = getAmount();
+				return {
+					render: () => `<div class="font-medium">${amount}</div>`,
+				};
+			});
+
 			return renderSnippet(
 				amountCellSnippet,
 				formatter.format(parseFloat(row.getValue("amount")))
@@ -53,6 +43,19 @@ export const columns: ColumnDef<ProxyGroup>[] = [
 		id: "actions",
     header: "",
 		cell: ({ row }) => {
+			const rowActionsCellSnippet = createRawSnippet<[ProxyGroup]>(getOriginal => {
+				const proxyGroup = getOriginal();
+				return {
+					render: () => `<div class="flex justify-end"></div>`,
+					setup: target => {
+						const comp = mount(ProxiesRowActions, {
+							target,
+							props: { proxyGroup },
+						});
+						return () => unmount(comp);
+					}
+				};
+			});
       return renderSnippet(rowActionsCellSnippet, row.original);
     },
   },

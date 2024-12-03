@@ -4,7 +4,9 @@
 
 <script lang="ts">
 	import { proxiesStore, type ProxyGroup } from "$lib/stores/proxies-store.svelte";
-	import { addProxyGroupFormSchema } from "$lib/schemas/proxies";
+	import { addNewSignup } from "$lib/services/signups-service";
+	import { signupModes, signupProducts } from "$lib/data/signups";
+	import { newSignupFormSchema } from "$lib/schemas/signups";
 	import { buttonVariants } from "$lib/components/ui/button";
 	import * as Dialog from "$lib/components/ui/dialog";
 	import * as Form from "$lib/components/ui/form";
@@ -21,25 +23,16 @@
 			label: "Product",
 			type: "select",
 			placeholder: "Select a product",
-			values: [
-				{
-					group: "Sabrina Carpenter",
-					options: [
-						{ value: "sabrina-hallenstadion", label: "Sabrina Carpenter - 3/27 - Hallenstadion"},
-						{ value: "sabrina-unity-arena", label: "Sabrina Carpenter - 3/30 - Unity Arena" },
-						{ value: "sabrina-royal-arena", label: "Sabrina Carpenter - 3/31 - Royal Arena" },
-						{ value: "sabrina-avicii-arena", label: "Sabrina Carpenter - 4/3 - Avicii Arena" },
-					],
-				},
-				{ value: "random-unicorn-arena", label: "Random Artist - 24/24 - Unicorn Arena" },
-			]
+			allowDeselect: false,
+			values: signupProducts,
 		},
 		{
 			name: "proxyGroup",
 			label: "Proxy Group",
 			type: "select",
 			placeholder: "Select a proxy group",
-			values: [...proxyGroupOptions]
+			allowDeselect: false,
+			values: proxyGroupOptions,
 		},
 		{
 			name: "mode",
@@ -48,10 +41,7 @@
 			description: "Note: This is only used for signups that require email confirmation.",
 			placeholder: "Select a mode",
 			allowDeselect: false,
-			values: [
-				{ value: "manual_confirm", label: "Manual Confirmation"},
-				{ value: "auto_confirm", label: "Auto Confirmation" },
-			]
+			values: signupModes,
 		},
 	];
 
@@ -82,8 +72,8 @@
 			{data} 
 			{fields}
 			{onsuccess}
-			onsubmit={async (formData: any) => console.log(formData)}
-			schema={addProxyGroupFormSchema}
+			onsubmit={addNewSignup}
+			schema={newSignupFormSchema}
 		>
 			{#snippet children(submitting)}
 				<div class="flex justify-end">
