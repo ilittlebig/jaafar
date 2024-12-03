@@ -5,8 +5,16 @@
  * Created: 2024-12-02
  */
 
-import { readFile, readFileJSON, writeFileJSON } from "$lib/services/files-service";
+import { deleteFile, readFile, readFileJSON, writeFileJSON } from "$lib/services/files-service";
 import { proxiesStore, type ProxyGroup } from "$lib/stores/proxies-store.svelte";
+
+const rollbackDeletedFile = async (filePath: string, data: any) => {
+	try {
+		await writeFileJSON(filePath, data);
+	} catch (err) {
+		console.log("Failed to rollback proxy group deletion. Manual recovery may be required.", err);
+	}
+}
 
 export const loadProxyGroup = async (groupName: string) => {
   const filePath = `proxies/${groupName}.json`;
@@ -23,7 +31,7 @@ export const loadProxyGroup = async (groupName: string) => {
 export const loadProxyGroups = async () => {
   const proxyGroups = await readFileJSON("proxies.json");
 	if (!proxyGroups) return;
-	proxiesStore.groups = [ ...proxiesStore.groups, ...proxyGroups ];
+	proxiesStore.groups = [ ...proxyGroups ];
 }
 
 export const addProxyGroup = async ({ name, file: filePath }: ProxyGroup) => {
@@ -64,3 +72,35 @@ export const addProxyGroup = async ({ name, file: filePath }: ProxyGroup) => {
   await writeFileJSON("proxies.json", metadata);
 	proxiesStore.groups = [ ...proxiesStore.groups, newGroup ];
 };
+
+export const deleteProxyGroup = async (groupName: string) => {
+	const filePath = `proxies/${groupName}.json`;
+
+  let metadata = await readFileJSON("proxies.json");
+  if (!metadata || !Array.isArray(metadata)) {
+    throw new Error("Unable to load proxy metadata");
+  }
+
+  const groupIndex = metadata.findIndex(group => group.name === groupName);
+  if (groupIndex === -1) {
+    throw new Error(`Proxy group "${groupName}" does not exist`);
+  }
+
+	// In-case a rollback is needed after the file is deleted
+	const groupData = await readFileJSON(filePath);
+
+  try {
+    await deleteFile(filePath);
+  } catch {
+    throw new Error("Failed to delete proxy group");
+  }
+
+	try {
+		metadata.splice(groupIndex, 1);
+		await writeFileJSON("proxies.json", metadata);
+		proxiesStore.groups = metadata;
+	} catch {
+		if (groupData) await rollbackDeletedFile(filePath, groupData);
+		throw new Error("Failed to update proxy metadata. Rollback attempted.");
+	}
+}

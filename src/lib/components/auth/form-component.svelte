@@ -22,6 +22,7 @@
 	type ValueObj = {
 		value: string;
 		label: string;
+		[key: string]: any;
 	}
 
 	type ValueGroup = {

@@ -60,4 +60,6 @@
 	setContext("data-table", { table });
 </script>
 
-{@render children()}
+<div>
+	{@render children()}
+</div>

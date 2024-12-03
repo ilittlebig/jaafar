@@ -11,6 +11,7 @@ import {
   writeTextFile,
   readTextFile,
   exists,
+	remove,
 } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-dialog";
 
@@ -43,6 +44,7 @@ export const writeFile = async (fileName: string, data: any) => {
     await writeTextFile(filePath, data);
   } catch (err) {
     console.log("Could not write to file: " + fileName, err)
+		throw err;
   }
 }
 
@@ -51,6 +53,7 @@ export const writeFileJSON = async (fileName: string, data: any) => {
     await writeFile(fileName, JSON.stringify(data, null, 4));
   } catch (err) {
     console.log("Could not write JSON to file: " + fileName, err)
+		throw err;
   }
 }
 
@@ -64,6 +67,7 @@ export const readFile = async (fileName: string) => {
 		});
   } catch (err) {
     console.log("Could not read file: " + fileName, err)
+		throw err;
   }
 }
 
@@ -74,6 +78,7 @@ export const readFileJSON = async (fileName: string) => {
     return JSON.parse(fileContent);
   } catch (err) {
     console.log("Could not read JSON file: " + fileName, err)
+		throw err;
   }
 }
 
@@ -84,4 +89,17 @@ export const selectFile = async (options: SelectFileOptions) => {
 		filters: options.filters,
 	});
 	return filePath;
+}
+
+export const deleteFile = async (fileName: string) => {
+	try {
+		const appDataPath = await appDataDir();
+		const filePath = isAbsolutePath(fileName)
+      ? fileName
+      : await resolve(appDataPath, fileName);
+    await remove(filePath);
+	} catch (err) {
+    console.log("Could not delete file: " + fileName, err)
+		throw err;
+	}
 }

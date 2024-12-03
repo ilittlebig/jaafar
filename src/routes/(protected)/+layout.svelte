@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import { loadAccounts } from "$lib/services/accounts-service";
 	import { loadProxyGroups } from "$lib/services/proxies-service";
+	import { loadSignups } from "$lib/services/signups-service";
 	import { ScrollArea } from "$lib/components/ui/scroll-area";
 	import Header from "$lib/components/header.svelte";
 	import Sidebar from "$lib/components/sidebar.svelte";
@@ -13,6 +14,7 @@
 	onMount(async () => {
 		await loadAccounts();
 		await loadProxyGroups();
+		await loadSignups();
 	});
 </script>
 
