@@ -1,10 +1,23 @@
 use reqwest::Client;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use serde_json::Value;
 use ua_generator::ua::spoof_ua;
 
 use crate::services::captcha_service;
 use crate::services::files_service;
+
+#[derive(Debug, Deserialize)]
+struct Account {
+    email: String,
+    firstname: String,
+    lastname: String,
+    phone: String,
+    address1: String,
+    address2: String,
+    city: String,
+    postcode: String,
+    country: String,
+}
 
 #[derive(Serialize)]
 struct GraphQLRequest {
@@ -53,9 +66,11 @@ const QUERY: &str = r#"
 "#;
 
 pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String, product_id: &str) -> Result<(), String> {
-    let accountsPath = files_service::resolve_path(&app_handle, "accounts.json")?;
-    let proxiesPath = files_service::resolve_path(&app_handle, &format!("proxies/{}.json", proxy_group))?;
-    let settingsPath = files_service::resolve_path(&app_handle, "settings.json")?;
+    let accounts_path = files_service::resolve_path(&app_handle, "accounts.json")?;
+    let proxies_path = files_service::resolve_path(&app_handle, &format!("proxies/{}.json", proxy_group))?;
+    let settings_path = files_service::resolve_path(&app_handle, "settings.json")?;
+
+    let accounts: Vec<Account> = files_service::read_json_file(accounts_path)?;
 
     let client_key = "CAP-50C1E71AF959204A1440C4E490AA036E".to_string();
     let captcha_solution = captcha_service::solve_captcha(
