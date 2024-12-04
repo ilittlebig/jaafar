@@ -7,7 +7,8 @@ extern crate cocoa;
 extern crate objc;
 
 mod plugins;
-mod signup;
+mod signups;
+mod services;
 
 use plugins::tauri_traffic_light_positioner_plugin;
 
@@ -23,7 +24,7 @@ pub fn run() {
         .plugin(tauri_traffic_light_positioner_plugin::init())
 
         .invoke_handler(tauri::generate_handler![
-            signup::sabrina_hallenstadion,
+            signups::sabrina_hallenstadion,
         ])
 
         .run(tauri::generate_context!())

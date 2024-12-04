@@ -42,7 +42,7 @@ struct Solution {
     gRecaptchaResponse: String,
 }
 
-#[tauri::command]
+//#[tauri::command]
 pub async fn sabrina_hallenstadion(proxy_group: String, mode: String) -> Result<(), String> {
     println!("Starting signups with proxy group: {:?}, mode: {:?}", proxy_group, mode);
 
