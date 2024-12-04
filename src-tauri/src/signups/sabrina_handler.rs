@@ -1,7 +1,10 @@
 use reqwest::Client;
 use serde::Serialize;
 use serde_json::Value;
+use ua_generator::ua::spoof_ua;
+
 use crate::services::captcha_service;
+use crate::services::files_service;
 
 #[derive(Serialize)]
 struct GraphQLRequest {
@@ -14,11 +17,10 @@ const CAPTCHA_WEBSITE_KEY: &str = "6LfaRWApAAAAAPvWsG2tsIhBCLEdXyz_EUQtQily";
 const CAPTCHA_TASK_TYPE: &str = "ReCaptchaV3TaskProxyLess";
 const CAPTCHA_PAGE_ACTION: &str = "create_customer";
 
-const URL: &str = "https://laylo.com/api/graphql";
+const REQUEST_URL: &str = "https://laylo.com/api/graphql";
 
 const DROP_DATE: i64 = 1733386800000;
 const FINGERPRINT_ID: &str = "3542ca6347494934b9e7be13fa3922e7";
-const PRODUCT_ID: &str = "bdd68f6b-dd1c-4551-89d7-c168f8d6c3d0";
 const OPT_IN: bool = false;
 const REFERRER: &str = "https://store.sabrinacarpenter.com/pages/tour";
 
@@ -50,7 +52,11 @@ const QUERY: &str = r#"
     }
 "#;
 
-pub async fn run(proxy_group: String, mode: String) -> Result<(), String> {
+pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String, product_id: &str) -> Result<(), String> {
+    let accountsPath = files_service::resolve_path(&app_handle, "accounts.json")?;
+    let proxiesPath = files_service::resolve_path(&app_handle, &format!("proxies/{}.json", proxy_group))?;
+    let settingsPath = files_service::resolve_path(&app_handle, "settings.json")?;
+
     let client_key = "CAP-50C1E71AF959204A1440C4E490AA036E".to_string();
     let captcha_solution = captcha_service::solve_captcha(
         client_key,
@@ -64,7 +70,7 @@ pub async fn run(proxy_group: String, mode: String) -> Result<(), String> {
     let variables = serde_json::json!({
         "dropDate": DROP_DATE,
         "fingerprintId": FINGERPRINT_ID,
-        "productId": PRODUCT_ID,
+        "productId": product_id,
         "optIn": OPT_IN,
         "email": "elias@jamee.se",
         "referrer": REFERRER,
@@ -77,9 +83,11 @@ pub async fn run(proxy_group: String, mode: String) -> Result<(), String> {
     };
 
     let client = Client::new();
+    let user_agent = spoof_ua();
+
     let response = client
-        .post(URL)
-        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36")
+        .post(REQUEST_URL)
+        .header("User-Agent", user_agent)
         .header("Referer", CAPTCHA_WEBSITE_URL)
         .header("Origin", CAPTCHA_WEBSITE_URL)
         .json(&graphql_request)
