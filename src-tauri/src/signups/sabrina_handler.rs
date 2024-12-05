@@ -1,12 +1,17 @@
-use reqwest::Client;
+use reqwest::{Client, Proxy};
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
+use rand::Rng;
+use tokio::time::sleep;
+use std::time::Duration;
 use ua_generator::ua::spoof_ua;
 
 use crate::services::captcha_service;
 use crate::services::files_service;
+use crate::services::proxies_service;
+use crate::services::settings::Settings;
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 struct Account {
     email: String,
     firstname: String,
@@ -71,50 +76,83 @@ pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String
     let settings_path = files_service::resolve_path(&app_handle, "settings.json")?;
 
     let accounts: Vec<Account> = files_service::read_json_file(accounts_path)?;
+    let proxies: Vec<String> = files_service::read_json_file(proxies_path)?;
+    let settings: Settings = Settings::new(settings_path)?;
 
-    let client_key = "CAP-50C1E71AF959204A1440C4E490AA036E".to_string();
-    let captcha_solution = captcha_service::solve_captcha(
-        client_key,
-        CAPTCHA_WEBSITE_URL,
-        CAPTCHA_WEBSITE_KEY,
-        CAPTCHA_TASK_TYPE,
-        Some(CAPTCHA_PAGE_ACTION),
-        None,
-    ).await.map_err(|e| format!("Captcha solving failed: {}", e))?;
+    let integration = settings.integration;
+    let captcha_solver = integration.captcha_solver;
+    let captcha_solver_api_key = integration.captcha_solver_api_key;
+    let request_delay = integration.request_delay;
 
-    let variables = serde_json::json!({
-        "dropDate": DROP_DATE,
-        "fingerprintId": FINGERPRINT_ID,
-        "productId": product_id,
-        "optIn": OPT_IN,
-        "email": "elias@jamee.se",
-        "referrer": REFERRER,
-        "captcha": captcha_solution,
-    });
+    println!("Captcha Solver: {}", captcha_solver);
+    println!("Captcha Solver API Key: {}", captcha_solver_api_key);
+    println!("Request Delay: {}", request_delay);
 
-    let graphql_request = GraphQLRequest {
-        query: QUERY.to_string(),
-        variables,
-    };
+    /*
+    for account in accounts {
+        println!("Processing account: {}", account.email);
 
-    let client = Client::new();
-    let user_agent = spoof_ua();
+        let proxy = proxies_service::get_random_proxy(&proxies)
+            .ok_or_else(|| "No proxies available".to_string())?;
+        println!("Using proxy: {}", proxy);
 
-    let response = client
-        .post(REQUEST_URL)
-        .header("User-Agent", user_agent)
-        .header("Referer", CAPTCHA_WEBSITE_URL)
-        .header("Origin", CAPTCHA_WEBSITE_URL)
-        .json(&graphql_request)
-        .send()
-        .await
-        .map_err(|e| format!("Request failed: {}", e))?;
+        let captcha_solution = captcha_service::solve_captcha(
+            client_key.clone(),
+            CAPTCHA_WEBSITE_URL,
+            CAPTCHA_WEBSITE_KEY,
+            CAPTCHA_TASK_TYPE,
+            Some(CAPTCHA_PAGE_ACTION),
+            Some(proxy.clone()),
+        ).await.map_err(|e| format!("Captcha solving failed for {}: {}", account.email, e))?;
 
-    let response_text = response
-        .text()
-        .await
-        .map_err(|e| format!("Failed to read response: {}", e))?;
-    println!("Response: {}", response_text);
+        let variables = serde_json::json!({
+            "dropDate": DROP_DATE,
+            "fingerprintId": FINGERPRINT_ID,
+            "productId": product_id,
+            "optIn": OPT_IN,
+            "email": account.email,
+            "referrer": REFERRER,
+            "captcha": captcha_solution,
+        });
+
+        let graphql_request = GraphQLRequest {
+            query: QUERY.to_string(),
+            variables,
+        };
+
+        let proxy = proxies_service::get_random_proxy(&proxies)
+            .ok_or_else(|| "No proxies available".to_string())?;
+        println!("Raw proxy: {}", proxy);
+
+        let formatted_proxy = proxies_service::format_proxy(proxy)
+            .map_err(|e| format!("Invalid proxy: {}", e))?;
+        println!("Formatted proxy: {}", formatted_proxy);
+
+        let proxy_client = Client::builder()
+            .proxy(Proxy::http(&formatted_proxy).map_err(|e| format!("Invalid proxy: {}", e))?)
+            .build()
+            .map_err(|e| format!("Failed to build proxy client: {}", e))?;
+
+        let client = Client::new();
+        let user_agent = spoof_ua();
+
+        let response = client
+            .post(REQUEST_URL)
+            .header("User-Agent", user_agent)
+            .header("Referer", CAPTCHA_WEBSITE_URL)
+            .header("Origin", CAPTCHA_WEBSITE_URL)
+            .json(&graphql_request)
+            .send()
+            .await
+            .map_err(|e| format!("Request failed for {}: {}", account.email, e))?;
+
+        let response_text = response
+            .text()
+            .await
+            .map_err(|e| format!("Failed to read response for {}: {}", account.email, e))?;
+        println!("Response for {}: {}", account.email, response_text);
+    }
+    */
 
     Ok(())
 }
