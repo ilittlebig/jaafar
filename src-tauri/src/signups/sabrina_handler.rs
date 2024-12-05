@@ -93,8 +93,6 @@ pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String
         println!("Processing account: {}", account.email);
 
         let proxy = proxies_service::get_random_proxy(&proxies)?;
-        println!("Using proxy: {}", proxy);
-
         let captcha_solution = captcha_service::solve_captcha(
             client_key.clone(),
             CAPTCHA_WEBSITE_URL,
@@ -119,13 +117,8 @@ pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String
             variables,
         };
 
-        let proxy = proxies_service::get_random_proxy(&proxies)
-            .ok_or_else(|| "No proxies available".to_string())?;
-        println!("Raw proxy: {}", proxy);
-
-        let formatted_proxy = proxies_service::format_proxy(proxy)
-            .map_err(|e| format!("Invalid proxy: {}", e))?;
-        println!("Formatted proxy: {}", formatted_proxy);
+        let proxy = proxies_service::get_random_proxy(&proxies)?;
+        let formatted_proxy = proxies_service::format_proxy(proxy)?;
 
         let proxy_client = Client::builder()
             .proxy(Proxy::http(&formatted_proxy).map_err(|e| format!("Invalid proxy: {}", e))?)
