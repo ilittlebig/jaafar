@@ -1,4 +1,4 @@
-use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, REFERER, ORIGIN};
 use serde::Serialize;
 use serde_json::Value;
 use std::time::Duration;
@@ -7,6 +7,7 @@ use ua_generator::ua::spoof_ua;
 use crate::services::captcha_service;
 use crate::services::files_service;
 use crate::services::proxies_service;
+use crate::services::http_service;
 use crate::services::account_service::Account;
 use crate::services::settings::Settings;
 
@@ -79,7 +80,14 @@ pub async fn run(
     for account in accounts {
         println!("Processing account: {}", account.email);
 
-        if let Err(e) = process_account(&account, &proxies, &captcha_solver, &captcha_solver_api_key, max_request_retries, &product_id).await {
+        if let Err(e) = process_account(
+            &account,
+            &proxies,
+            &captcha_solver,
+            &captcha_solver_api_key,
+            max_request_retries,
+            &product_id
+        ).await {
             println!("{}", e);
         }
 
@@ -103,7 +111,14 @@ async fn process_account(
         attempts += 1;
         println!("Attempt {}/{} for {}", attempts, max_request_retries, account.email);
 
-        match try_process_account(account, proxies, product_id, captcha_solver, captcha_solver_api_key).await {
+        match try_process_account(
+            account,
+            proxies,
+            product_id,
+            captcha_solver,
+            captcha_solver_api_key,
+            max_request_retries,
+        ).await {
             Ok(_) => return Ok(()),
             Err(e) => {
                 if attempts == max_request_retries {
@@ -126,6 +141,7 @@ async fn try_process_account(
     product_id: &str,
     captcha_solver: &str,
     captcha_solver_api_key: &str,
+    max_request_retries: usize,
 ) -> Result<(), String> {
     let proxy = proxies_service::get_random_proxy(&proxies)?;
     let captcha_solution = captcha_service::solve_captcha(
@@ -154,22 +170,20 @@ async fn try_process_account(
 
     let proxy_string = proxies_service::get_random_proxy(&proxies)?;
     let proxy = proxies_service::transform_string_to_proxy(proxy_string)?;
-
-    let proxy_client = Client::builder()
-        .proxy(proxy)
-        .build()
-        .map_err(|e| format!("Failed to build proxy client: {}", e))?;
-
     let user_agent = spoof_ua();
-    let response = proxy_client
-        .post(REQUEST_URL)
-        .header("User-Agent", user_agent)
-        .header("Referer", CAPTCHA_WEBSITE_URL)
-        .header("Origin", CAPTCHA_WEBSITE_URL)
-        .json(&graphql_request)
-        .send()
-        .await
-        .map_err(|e| format!("Request failed for {}: {}", account.email, e))?;
+
+    let mut headers = HeaderMap::new();
+    headers.insert(USER_AGENT, HeaderValue::from_static(user_agent));
+    headers.insert(REFERER, HeaderValue::from_static(CAPTCHA_WEBSITE_URL));
+    headers.insert(ORIGIN, HeaderValue::from_static(CAPTCHA_WEBSITE_URL));
+
+    let response = http_service::send_request_with_retries(
+        REQUEST_URL,
+        headers,
+        proxy,
+        &graphql_request,
+        max_request_retries,
+    ).await?;
 
     let response_text = response
         .text()
