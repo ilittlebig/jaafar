@@ -9,6 +9,7 @@ extern crate objc;
 mod plugins;
 mod signups;
 mod services;
+mod captchas;
 
 use plugins::tauri_traffic_light_positioner_plugin;
 

@@ -4,12 +4,12 @@ use serde_json::Value;
 use std::time::Duration;
 use ua_generator::ua::spoof_ua;
 
-use crate::services::captcha_service;
 use crate::services::files_service;
 use crate::services::proxies_service;
 use crate::services::http_service;
 use crate::services::account_service::Account;
 use crate::services::settings::Settings;
+use crate::captchas::create_solver;
 
 #[derive(Serialize)]
 struct GraphQLRequest {
@@ -143,14 +143,15 @@ async fn try_process_account(
     captcha_solver_api_key: &str,
     max_request_retries: usize,
 ) -> Result<(), String> {
-    let proxy = proxies_service::get_random_proxy(&proxies)?;
-    let captcha_solution = captcha_service::solve_captcha(
-        captcha_solver_api_key.to_string(),
+    let proxy_string = proxies_service::get_random_proxy(&proxies)?;
+
+    let solver = create_solver(captcha_solver, captcha_solver_api_key)?;
+    let captcha_solution = solver.solve(
         CAPTCHA_WEBSITE_URL,
         CAPTCHA_WEBSITE_KEY,
         CAPTCHA_TASK_TYPE,
         Some(CAPTCHA_PAGE_ACTION),
-        Some(proxy.clone()),
+        Some(proxy_string),
     ).await?;
 
     let variables = serde_json::json!({
