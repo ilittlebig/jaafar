@@ -1,7 +1,10 @@
-pub fn get_random_proxy(proxies: &[String]) -> Option<&String> {
+pub fn get_random_proxy(proxies: &[String]) -> Result<&String, String> {
     use rand::seq::SliceRandom;
     let mut rng = rand::thread_rng();
-    proxies.choose(&mut rng)
+
+    proxies
+        .choose(&mut rng)
+        .ok_or_else(|| "No proxies available".to_string())
 }
 
 pub fn format_proxy(proxy: &str) -> Result<String, String> {

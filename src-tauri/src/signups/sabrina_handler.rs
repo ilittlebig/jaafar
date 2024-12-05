@@ -92,8 +92,7 @@ pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String
     for account in accounts {
         println!("Processing account: {}", account.email);
 
-        let proxy = proxies_service::get_random_proxy(&proxies)
-            .ok_or_else(|| "No proxies available".to_string())?;
+        let proxy = proxies_service::get_random_proxy(&proxies)?;
         println!("Using proxy: {}", proxy);
 
         let captcha_solution = captcha_service::solve_captcha(
@@ -103,7 +102,7 @@ pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String
             CAPTCHA_TASK_TYPE,
             Some(CAPTCHA_PAGE_ACTION),
             Some(proxy.clone()),
-        ).await.map_err(|e| format!("Captcha solving failed for {}: {}", account.email, e))?;
+        ).await?;
 
         let variables = serde_json::json!({
             "dropDate": DROP_DATE,
