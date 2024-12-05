@@ -1,3 +1,5 @@
+use reqwest::Proxy;
+
 pub fn get_random_proxy(proxies: &[String]) -> Result<&String, String> {
     use rand::seq::SliceRandom;
     let mut rng = rand::thread_rng();
@@ -23,4 +25,10 @@ pub fn format_proxy(proxy: &str) -> Result<String, String> {
     }
 
     Ok(format!("http://{}:{}@{}:{}", username, password, host, port))
+}
+
+pub fn transform_string_to_proxy(proxy: &str) -> Result<Proxy, String> {
+    let formatted_proxy = format_proxy(proxy)?;
+    reqwest::Proxy::http(&formatted_proxy)
+        .map_err(|e| format!("Failed to create Proxy object: {}", e))
 }
