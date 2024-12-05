@@ -42,7 +42,7 @@ pub async fn solve_captcha(
     website_key: &str,
     task_type: &str,
     page_action: Option<&str>,
-    proxy: Option<&str>,
+    proxy: Option<String>,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let create_task_url = "https://api.capsolver.com/createTask";
     let get_task_result_url = "https://api.capsolver.com/getTaskResult";

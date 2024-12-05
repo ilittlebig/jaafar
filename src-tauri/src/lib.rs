@@ -25,6 +25,8 @@ pub fn run() {
 
         .invoke_handler(tauri::generate_handler![
             signups::sabrina_hallenstadion,
+            signups::sabrina_avicii_arena,
+            signups::sabrina_royal_arena,
         ])
 
         .run(tauri::generate_context!())
