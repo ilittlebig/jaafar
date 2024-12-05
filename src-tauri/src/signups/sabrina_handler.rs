@@ -1,9 +1,6 @@
-use reqwest::{Client, Proxy};
+use reqwest::Client;
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
-use rand::Rng;
-use tokio::time::sleep;
-use std::time::Duration;
 use ua_generator::ua::spoof_ua;
 
 use crate::services::captcha_service;
@@ -70,14 +67,14 @@ const QUERY: &str = r#"
     }
 "#;
 
-pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String, product_id: &str) -> Result<(), String> {
+pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, _mode: String, product_id: &str) -> Result<(), String> {
     let accounts_path = files_service::resolve_path(&app_handle, "accounts.json")?;
     let proxies_path = files_service::resolve_path(&app_handle, &format!("proxies/{}.json", proxy_group))?;
     let settings_path = files_service::resolve_path(&app_handle, "settings.json")?;
 
     let accounts: Vec<Account> = files_service::read_json_file(accounts_path)?;
     let proxies: Vec<String> = files_service::read_json_file(proxies_path)?;
-    let settings: Settings = Settings::new(settings_path)?;
+    let settings = Settings::new(settings_path)?;
 
     let integration = settings.integration;
     let captcha_solver = integration.captcha_solver;
@@ -88,13 +85,12 @@ pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String
     println!("Captcha Solver API Key: {}", captcha_solver_api_key);
     println!("Request Delay: {}", request_delay);
 
-    /*
     for account in accounts {
         println!("Processing account: {}", account.email);
 
         let proxy = proxies_service::get_random_proxy(&proxies)?;
         let captcha_solution = captcha_service::solve_captcha(
-            client_key.clone(),
+            captcha_solver_api_key.clone(),
             CAPTCHA_WEBSITE_URL,
             CAPTCHA_WEBSITE_KEY,
             CAPTCHA_TASK_TYPE,
@@ -117,18 +113,16 @@ pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String
             variables,
         };
 
-        let proxy = proxies_service::get_random_proxy(&proxies)?;
-        let formatted_proxy = proxies_service::format_proxy(proxy)?;
+        let proxy_string = proxies_service::get_random_proxy(&proxies)?;
+        let proxy = proxies_service::transform_string_to_proxy(proxy_string)?;
 
         let proxy_client = Client::builder()
-            .proxy(Proxy::http(&formatted_proxy).map_err(|e| format!("Invalid proxy: {}", e))?)
+            .proxy(proxy)
             .build()
             .map_err(|e| format!("Failed to build proxy client: {}", e))?;
 
-        let client = Client::new();
         let user_agent = spoof_ua();
-
-        let response = client
+        let response = proxy_client
             .post(REQUEST_URL)
             .header("User-Agent", user_agent)
             .header("Referer", CAPTCHA_WEBSITE_URL)
@@ -144,7 +138,6 @@ pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, mode: String
             .map_err(|e| format!("Failed to read response for {}: {}", account.email, e))?;
         println!("Response for {}: {}", account.email, response_text);
     }
-    */
 
     Ok(())
 }
