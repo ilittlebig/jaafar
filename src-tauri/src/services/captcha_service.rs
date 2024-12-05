@@ -44,7 +44,7 @@ const CREATE_TASK_URL: &str = "https://api.capsolver.com/createTask";
 const GET_TASK_RESULT_URL: &str = "https://api.capsolver.com/getTaskResult";
 
 pub async fn solve_captcha(
-    client_key: String,
+    api_key: String,
     website_url: &str,
     website_key: &str,
     task_type: &str,
@@ -59,13 +59,13 @@ pub async fn solve_captcha(
         proxy: proxy.map(|p| p.to_string()),
     };
 
-    let task_id = create_captcha_task(&client_key, task).await?;
-    poll_captcha_solution(&client_key, task_id).await
+    let task_id = create_captcha_task(&api_key, task).await?;
+    poll_captcha_solution(&api_key, task_id).await
 }
 
-async fn create_captcha_task(client_key: &str, task: CapSolverTask) -> Result<String, String> {
+async fn create_captcha_task(api_key: &str, task: CapSolverTask) -> Result<String, String> {
     let request_payload = CapSolverRequest {
-        client_key: client_key.to_string(),
+        client_key: api_key.to_string(),
         task,
     };
 
@@ -89,11 +89,11 @@ async fn create_captcha_task(client_key: &str, task: CapSolverTask) -> Result<St
         .ok_or_else(|| "Failed to extract taskId".to_string())
 }
 
-async fn poll_captcha_solution(client_key: &str, task_id: String) -> Result<String, String> {
+async fn poll_captcha_solution(api_key: &str, task_id: String) -> Result<String, String> {
     let client = Client::new();
     for _ in 0..120 {
         let get_task_result_payload = GetTaskResultRequest {
-            client_key: client_key.to_string(),
+            client_key: api_key.to_string(),
             task_id: task_id.clone(),
         };
 

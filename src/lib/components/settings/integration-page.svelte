@@ -83,6 +83,18 @@
 		</Form.Control>
 		<Form.FieldErrors />
 	</Form.Field>
+	<Form.Field name="integration.max_request_retries" {form}>
+		<Form.Control>
+			{#snippet children({ props })}
+				<div class="flex w-full flex-col gap-1.5">
+					<Form.Label>Max Request Retries</Form.Label>
+					<Input {...props} placeholder="3" bind:value={$formData.integration.max_request_retries} />
+					<p class="text-muted-foreground text-sm">Set the maximum number of retry attempts for failed requests before skipping to the next task.</p>
+				</div>
+			{/snippet}
+		</Form.Control>
+		<Form.FieldErrors />
+	</Form.Field>
 	<Form.Field name="integration.entry_limit" {form}>
 		<Form.Control>
 			{#snippet children({ props })}

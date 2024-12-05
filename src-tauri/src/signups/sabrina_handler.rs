@@ -1,6 +1,7 @@
 use reqwest::Client;
 use serde::Serialize;
 use serde_json::Value;
+use std::time::Duration;
 use ua_generator::ua::spoof_ua;
 
 use crate::services::captcha_service;
@@ -55,7 +56,12 @@ const QUERY: &str = r#"
     }
 "#;
 
-pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, _mode: String, product_id: &str) -> Result<(), String> {
+pub async fn run(
+    app_handle: tauri::AppHandle,
+    product_id: &str,
+    proxy_group: String,
+    _mode: String,
+) -> Result<(), String> {
     let accounts_path = files_service::resolve_path(&app_handle, "accounts.json")?;
     let proxies_path = files_service::resolve_path(&app_handle, &format!("proxies/{}.json", proxy_group))?;
     let settings_path = files_service::resolve_path(&app_handle, "settings.json")?;
@@ -68,64 +74,108 @@ pub async fn run(app_handle: tauri::AppHandle, proxy_group: String, _mode: Strin
     let captcha_solver = integration.captcha_solver;
     let captcha_solver_api_key = integration.captcha_solver_api_key;
     let request_delay = integration.request_delay;
-
-    println!("Captcha Solver: {}", captcha_solver);
-    println!("Captcha Solver API Key: {}", captcha_solver_api_key);
-    println!("Request Delay: {}", request_delay);
+    let max_request_retries = integration.max_request_retries;
 
     for account in accounts {
         println!("Processing account: {}", account.email);
 
-        let proxy = proxies_service::get_random_proxy(&proxies)?;
-        let captcha_solution = captcha_service::solve_captcha(
-            captcha_solver_api_key.clone(),
-            CAPTCHA_WEBSITE_URL,
-            CAPTCHA_WEBSITE_KEY,
-            CAPTCHA_TASK_TYPE,
-            Some(CAPTCHA_PAGE_ACTION),
-            Some(proxy.clone()),
-        ).await?;
+        if let Err(e) = process_account(&account, &proxies, &captcha_solver, &captcha_solver_api_key, max_request_retries, &product_id).await {
+            println!("{}", e);
+        }
 
-        let variables = serde_json::json!({
-            "dropDate": DROP_DATE,
-            "fingerprintId": FINGERPRINT_ID,
-            "productId": product_id,
-            "optIn": OPT_IN,
-            "email": account.email,
-            "referrer": REFERRER,
-            "captcha": captcha_solution,
-        });
-
-        let graphql_request = GraphQLRequest {
-            query: QUERY.to_string(),
-            variables,
-        };
-
-        let proxy_string = proxies_service::get_random_proxy(&proxies)?;
-        let proxy = proxies_service::transform_string_to_proxy(proxy_string)?;
-
-        let proxy_client = Client::builder()
-            .proxy(proxy)
-            .build()
-            .map_err(|e| format!("Failed to build proxy client: {}", e))?;
-
-        let user_agent = spoof_ua();
-        let response = proxy_client
-            .post(REQUEST_URL)
-            .header("User-Agent", user_agent)
-            .header("Referer", CAPTCHA_WEBSITE_URL)
-            .header("Origin", CAPTCHA_WEBSITE_URL)
-            .json(&graphql_request)
-            .send()
-            .await
-            .map_err(|e| format!("Request failed for {}: {}", account.email, e))?;
-
-        let response_text = response
-            .text()
-            .await
-            .map_err(|e| format!("Failed to read response for {}: {}", account.email, e))?;
-        println!("Response for {}: {}", account.email, response_text);
+        tokio::time::sleep(Duration::from_millis(request_delay)).await;
     }
+
+    Ok(())
+}
+
+async fn process_account(
+    account: &Account,
+    proxies: &[String],
+    captcha_solver: &str,
+    captcha_solver_api_key: &str,
+    max_request_retries: usize,
+    product_id: &str,
+) -> Result<(), String> {
+    let mut attempts = 0;
+
+    while attempts < max_request_retries {
+        attempts += 1;
+        println!("Attempt {}/{} for {}", attempts, max_request_retries, account.email);
+
+        match try_process_account(account, proxies, product_id, captcha_solver, captcha_solver_api_key).await {
+            Ok(_) => return Ok(()),
+            Err(e) => {
+                if attempts == max_request_retries {
+                    return Err(format!("Failed to process account {} after {} attempts: {}", account.email, attempts, e));
+                }
+                println!("Error on attempt {}: {}", attempts, e);
+            }
+        }
+
+        // Wait 1 second before trying again
+        tokio::time::sleep(Duration::from_secs(1)).await;
+    }
+
+    Ok(())
+}
+
+async fn try_process_account(
+    account: &Account,
+    proxies: &[String],
+    product_id: &str,
+    captcha_solver: &str,
+    captcha_solver_api_key: &str,
+) -> Result<(), String> {
+    let proxy = proxies_service::get_random_proxy(&proxies)?;
+    let captcha_solution = captcha_service::solve_captcha(
+        captcha_solver_api_key.to_string(),
+        CAPTCHA_WEBSITE_URL,
+        CAPTCHA_WEBSITE_KEY,
+        CAPTCHA_TASK_TYPE,
+        Some(CAPTCHA_PAGE_ACTION),
+        Some(proxy.clone()),
+    ).await?;
+
+    let variables = serde_json::json!({
+        "dropDate": DROP_DATE,
+        "fingerprintId": FINGERPRINT_ID,
+        "productId": product_id,
+        "optIn": OPT_IN,
+        "email": account.email,
+        "referrer": REFERRER,
+        "captcha": captcha_solution,
+    });
+
+    let graphql_request = GraphQLRequest {
+        query: QUERY.to_string(),
+        variables,
+    };
+
+    let proxy_string = proxies_service::get_random_proxy(&proxies)?;
+    let proxy = proxies_service::transform_string_to_proxy(proxy_string)?;
+
+    let proxy_client = Client::builder()
+        .proxy(proxy)
+        .build()
+        .map_err(|e| format!("Failed to build proxy client: {}", e))?;
+
+    let user_agent = spoof_ua();
+    let response = proxy_client
+        .post(REQUEST_URL)
+        .header("User-Agent", user_agent)
+        .header("Referer", CAPTCHA_WEBSITE_URL)
+        .header("Origin", CAPTCHA_WEBSITE_URL)
+        .json(&graphql_request)
+        .send()
+        .await
+        .map_err(|e| format!("Request failed for {}: {}", account.email, e))?;
+
+    let response_text = response
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read response for {}: {}", account.email, e))?;
+    println!("Response for {}: {}", account.email, response_text);
 
     Ok(())
 }

@@ -12,6 +12,7 @@ export let settingsStore: Settings = $state({
 		captcha_solver: undefined,
 		captcha_solver_api_key: undefined,
 		request_delay: 3000,
+		max_request_retries: 3,
 		entry_limit: 10,
 		imap_email: undefined,
 		imap_password: undefined,
