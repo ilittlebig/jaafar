@@ -1,25 +1,13 @@
 use reqwest::Client;
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use serde_json::Value;
 use ua_generator::ua::spoof_ua;
 
 use crate::services::captcha_service;
 use crate::services::files_service;
 use crate::services::proxies_service;
+use crate::services::account_service::Account;
 use crate::services::settings::Settings;
-
-#[derive(Deserialize)]
-struct Account {
-    email: String,
-    firstname: String,
-    lastname: String,
-    phone: String,
-    address1: String,
-    address2: String,
-    city: String,
-    postcode: String,
-    country: String,
-}
 
 #[derive(Serialize)]
 struct GraphQLRequest {
