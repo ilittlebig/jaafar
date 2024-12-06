@@ -66,23 +66,18 @@ pub async fn send_request_with_retries<T: Serialize>(
     body: &T,
     max_retries: usize
 ) -> Result<Response, String> {
-    let client = Client::builder()
-        .proxy(proxy)
-        .build()
-        .map_err(|e| format!("Failed to build client: {}", e))?;
-
     for _ in 0..max_retries {
-        match client
-            .post(url)
-            .headers(headers.clone())
-            .json(body)
-            .send()
-            .await
+        match send_request(
+            url,
+            Method::POST,
+            Some(headers.clone()),
+            None,
+            Some(body),
+            Some(proxy.clone())).await
         {
             Ok(response) => return Ok(response),
             Err(e) => println!("Retrying request due to error: {}", e)
         }
-
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
