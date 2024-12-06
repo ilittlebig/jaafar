@@ -10,6 +10,7 @@ mod plugins;
 mod signups;
 mod services;
 mod captchas;
+mod phone_numbers;
 
 use plugins::tauri_traffic_light_positioner_plugin;
 

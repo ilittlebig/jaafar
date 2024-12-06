@@ -10,6 +10,7 @@ use crate::services::http_service;
 use crate::services::account_service::Account;
 use crate::services::settings::Settings;
 use crate::captchas::create_solver;
+use crate::phone_numbers::create_sms_verifier;
 
 #[derive(Serialize)]
 struct GraphQLRequest {
@@ -72,27 +73,31 @@ pub async fn run(
     let settings = Settings::new(settings_path)?;
 
     let integration = settings.integration;
-    let captcha_solver = integration.captcha_solver;
-    let captcha_solver_api_key = integration.captcha_solver_api_key;
-    let request_delay = integration.request_delay;
-    let max_request_retries = integration.max_request_retries;
 
+    let sms_verifier = create_sms_verifier(&integration.sms_verifier, &integration.sms_verifier_api_key)?;
+    let (activation_id, phone_number) = sms_verifier.get_phone_number().await?;
+    println!("activation_id: {} | phone_number: {}", activation_id, phone_number);
+    let sms_code = sms_verifier.get_sms_code(&activation_id).await?;
+    println!("sms_code: {}", sms_code);
+
+    /*
     for account in accounts {
         println!("Processing account: {}", account.email);
 
         if let Err(e) = process_account(
             &account,
             &proxies,
-            &captcha_solver,
-            &captcha_solver_api_key,
-            max_request_retries,
+            &integration.captcha_solver,
+            &integration.captcha_solver_api_key,
+            integration.max_request_retries,
             &product_id
         ).await {
             println!("{}", e);
         }
 
-        tokio::time::sleep(Duration::from_millis(request_delay)).await;
+        tokio::time::sleep(Duration::from_millis(integration.request_delay)).await;
     }
+    */
 
     Ok(())
 }
