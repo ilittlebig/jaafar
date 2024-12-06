@@ -19,9 +19,14 @@ const optionalString = (schema: z.ZodString) => {
 const integrationSchema = z.object({
 	captcha_solver: optionalString(z.string()),
 	captcha_solver_api_key: optionalString(z.string()),
+	sms_verifier: optionalString(z.string()),
+	sms_verifier_api_key: optionalString(z.string()),
 	request_delay: z.coerce
 		.number({ invalid_type_error: "Request delay must be a valid number" })
 		.min(1000, { message: "Request delay must be at least 1000ms" }),
+	max_request_retries: z.coerce
+		.number({ invalid_type_error: "Max request retries must be a valid number" })
+		.min(0, { message: "Max request retries must be at least 0" }),
 	entry_limit: z.coerce
 		.number({ invalid_type_error: "Entry limit must be a valid number" })
 		.min(1, { message: "Entry limit must be at least 1" }),
