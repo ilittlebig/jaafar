@@ -76,9 +76,10 @@ pub async fn run(
 
     let sms_verifier = create_sms_verifier(&integration.sms_verifier, &integration.sms_verifier_api_key)?;
     let (activation_id, phone_number) = sms_verifier.get_phone_number().await?;
+    //let sms_code = sms_verifier.get_sms_code(&activation_id).await?;
+
     println!("activation_id: {} | phone_number: {}", activation_id, phone_number);
-    let sms_code = sms_verifier.get_sms_code(&activation_id).await?;
-    println!("sms_code: {}", sms_code);
+    //println!("sms_code: {}", sms_code);
 
     /*
     for account in accounts {
