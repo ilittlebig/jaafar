@@ -97,11 +97,11 @@
 				>
 					<Sidebar {pages} />
 					<div class="ml-52 w-full">
-						{#each pages as { name, page: Page }}
-							<Tabs.Content value={name} class="w-full">
-								<Page {form} {formData} />
-							</Tabs.Content>
-						{/each}
+							{#each pages as { name, page: Page }}
+								<Tabs.Content value={name} class="w-full">
+									<Page {form} {formData} />
+								</Tabs.Content>
+							{/each}
 					</div>
 				</Tabs.Root>
 			</form>

@@ -2,6 +2,7 @@
 	import type { SuperForm } from "sveltekit-superforms";
 	import type { SettingsSchema } from "$lib/schemas/settings";
 	import { Input } from "$lib/components/ui/input";
+  import { Label } from "$lib/components/ui/label";
   import { Separator } from "$lib/components/ui/separator";
 	import * as Select from "$lib/components/ui/select";
 	import * as Form from "$lib/components/ui/form";
@@ -78,18 +79,6 @@
 					<Form.Label>Request Delay</Form.Label>
 					<Input {...props} placeholder="3000" bind:value={$formData.integration.request_delay} />
 					<p class="text-muted-foreground text-sm">Configure the delay (in milliseconds) between automated actions.</p>
-				</div>
-			{/snippet}
-		</Form.Control>
-		<Form.FieldErrors />
-	</Form.Field>
-	<Form.Field name="integration.max_request_retries" {form}>
-		<Form.Control>
-			{#snippet children({ props })}
-				<div class="flex w-full flex-col gap-1.5">
-					<Form.Label>Max Request Retries</Form.Label>
-					<Input {...props} placeholder="3" bind:value={$formData.integration.max_request_retries} />
-					<p class="text-muted-foreground text-sm">Set the maximum number of retry attempts for failed requests before skipping to the next task.</p>
 				</div>
 			{/snippet}
 		</Form.Control>

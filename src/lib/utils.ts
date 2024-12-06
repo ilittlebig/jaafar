@@ -1,10 +1,9 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import Papa from "papaparse";
 
 type Obj = { [key: string]: Record<string, any> };
 
-export const cn = (...inputs: ClassValue[]) => {
+export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
@@ -21,15 +20,3 @@ export const deepMerge = (target: Obj, source: Obj) => {
 	}
 	return target;
 }
-
-export const csvToJson = async (csvContent: string): Promise<any> => {
-	const result = Papa.parse(csvContent, {
-		header: true,
-		skipEmptyLines: true,
-	});
-
-	if (result.errors.length > 0) {
-		throw new Error("Error parsing CSV: " + JSON.stringify(result.errors));
-	}
-	return result.data;
-};
