@@ -12,7 +12,7 @@
 				{...props}
 				variant="ghost"
 				size="icon"
-				class="rounded-lg"
+				class="rounded-lg "
 			>
 				<i class="fa-regular fa-circle-user text-lg"></i>
 				<span class="sr-only">Toggle user menu</span>
