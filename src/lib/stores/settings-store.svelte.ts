@@ -11,6 +11,8 @@ export let settingsStore: Settings = $state({
 	integration: {
 		captcha_solver: undefined,
 		captcha_solver_api_key: undefined,
+		sms_verifier: undefined,
+		sms_verifier_api_key: undefined,
 		request_delay: 3000,
 		max_request_retries: 3,
 		entry_limit: 10,

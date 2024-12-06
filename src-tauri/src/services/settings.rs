@@ -7,6 +7,8 @@ use crate::services::files_service;
 pub struct IntegrationSettings {
     pub captcha_solver: String,
     pub captcha_solver_api_key: String,
+    pub sms_verifier: String,
+    pub sms_verifier_api_key: String,
     pub request_delay: u64,
     pub max_request_retries: usize,
     pub entry_limit: usize,
