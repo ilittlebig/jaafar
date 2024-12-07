@@ -1,8 +1,10 @@
-use async_trait::async_trait;
-use reqwest::Client;
+use reqwest::{Client, Method};
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
+use async_trait::async_trait;
+
 use super::CaptchaSolver;
+use crate::services::http_service;
 
 pub struct CapSolver {
     pub client_key: String,
@@ -10,28 +12,28 @@ pub struct CapSolver {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct CapSolverTask {
+struct CapSolverTask<'a> {
     #[serde(rename = "type")]
-    task_type: String,
+    task_type: &'a str,
     #[serde(rename = "websiteURL")]
-    website_url: String,
-    website_key: String,
-    page_action: Option<String>,
-    proxy: Option<String>,
+    website_url: &'a str,
+    website_key: &'a str,
+    page_action: Option<&'a str>,
+    proxy: Option<&'a String>,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct CapSolverRequest {
-    client_key: String,
-    task: CapSolverTask,
+struct CapSolverRequest<'a> {
+    client_key: &'a str,
+    task: CapSolverTask<'a>,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct GetTaskResultRequest {
-    client_key: String,
-    task_id: String,
+struct GetTaskResultRequest<'a> {
+    client_key: &'a str,
+    task_id: &'a str,
 }
 
 #[derive(Deserialize)]
@@ -43,6 +45,7 @@ struct GetTaskResultResponse {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CaptchaSolution {
+    #[serde(rename = "gRecaptchaResponse")]
     g_recaptcha_response: String,
 }
 
@@ -60,11 +63,11 @@ impl CaptchaSolver for CapSolver {
         proxy: Option<&String>,
     ) -> Result<String, String> {
         let task = CapSolverTask {
-            task_type: task_type.to_string(),
-            website_url: website_url.to_string(),
-            website_key: website_key.to_string(),
-            page_action: page_action.map(|p| p.to_string()),
-            proxy: proxy.map(|p| p.to_string()),
+            task_type: task_type,
+            website_url: website_url,
+            website_key: website_key,
+            page_action: page_action,
+            proxy: proxy,
         };
 
         let task_id = create_captcha_task(&self.client_key, task).await?;
@@ -72,25 +75,22 @@ impl CaptchaSolver for CapSolver {
     }
 }
 
-async fn create_captcha_task(client_key: &str, task: CapSolverTask) -> Result<String, String> {
+async fn create_captcha_task(client_key: &str, task: CapSolverTask<'_>) -> Result<String, String> {
     let request_payload = CapSolverRequest {
-        client_key: client_key.to_string(),
+        client_key: client_key,
         task,
     };
 
-    let client = Client::new();
-    let response = client
-        .post(CREATE_TASK_URL)
-        .json(&request_payload)
-        .send()
-        .await
-        .map_err(|e| format!("Failed to send createTask request: {}", e))?;
+    let response = http_service::send_request(
+        CREATE_TASK_URL,
+        Method::POST,
+        None,
+        None,
+        Some(&request_payload),
+        None,
+    ).await?;
 
-    let response_json: Value = response
-        .json()
-        .await
-        .map_err(|e| format!("Failed to parse createTask response: {}", e))?;
-
+    let response_json = http_service::response_to_json(response).await?;
     response_json
         .get("taskId")
         .and_then(|id| id.as_str())
@@ -98,31 +98,39 @@ async fn create_captcha_task(client_key: &str, task: CapSolverTask) -> Result<St
         .ok_or_else(|| "Failed to extract taskId".to_string())
 }
 
-async fn poll_captcha_solution(client_key: &str, task_id: String) -> Result<String, String> {
+async fn poll_captcha_solution<'a>(client_key: &'a str, task_id: String) -> Result<String, String> {
     let client = Client::new();
     for _ in 0..120 {
         let get_task_result_payload = GetTaskResultRequest {
-            client_key: client_key.to_string(),
-            task_id: task_id.clone(),
+            client_key: client_key,
+            task_id: &task_id.clone(),
         };
 
-        let result_response = client
-            .post(GET_TASK_RESULT_URL)
-            .json(&get_task_result_payload)
-            .send()
-            .await
-            .map_err(|e| format!("Failed to send getTaskResult request: {}", e))?;
+        let response = match http_service::send_request(
+            GET_TASK_RESULT_URL,
+            Method::POST,
+            None,
+            None,
+            Some(&get_task_result_payload),
+            None,
+        ).await {
+            Ok(response) => response,
+            Err(_) => continue,
+        };
 
-        let result_json: GetTaskResultResponse = result_response
-            .json()
-            .await
-            .map_err(|e| format!("Failed to parse getTaskResult response: {}", e))?;
+        let response_json: GetTaskResultResponse = match http_service::response_to_json(response).await {
+            Ok(response_json) => match serde_json::from_value(response_json) {
+                Ok(parsed) => parsed,
+                Err(_) => continue,
+            },
+            Err(_) => continue,
+        };
 
-        if result_json.status == "ready" {
-            if let Some(solution) = result_json.solution {
+        if response_json.status == "ready" {
+            if let Some(solution) = response_json.solution {
                 return Ok(solution.g_recaptcha_response);
             }
-        } else if result_json.status == "failed" {
+        } else if response_json.status == "failed" {
             return Err("CAPTCHA task failed".to_string());
         }
     }

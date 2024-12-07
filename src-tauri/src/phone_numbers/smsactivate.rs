@@ -6,15 +6,15 @@ use serde_json::Value;
 use super::SmsVerifier;
 use crate::services::http_service;
 
-pub struct SmsActivate {
-    pub api_key: String,
+pub struct SmsActivate<'a> {
+    pub api_key: &'a str,
 }
 
 const GET_NUMBER_URL: &str = "https://api.sms-activate.ae/stubs/handler_api.php";
 const GET_ACTIVATION_STATUS_URL: &str = "https://api.sms-activate.ae/stubs/handler_api.php";
 
 #[async_trait]
-impl SmsVerifier for SmsActivate {
+impl SmsVerifier for SmsActivate<'_> {
     async fn get_phone_number(&self) -> Result<(String, String), String> {
         let params = build_params(&self.api_key, "getNumber", Some(HashMap::from([
             ("service", "ot"),
