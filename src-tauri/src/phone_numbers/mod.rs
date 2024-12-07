@@ -9,10 +9,13 @@ pub trait SmsVerifier: Send + Sync {
     async fn get_sms_code(&self, id: &str) -> Result<String, String>;
 }
 
-pub fn create_sms_verifier(sms_verifier: &str, sms_verifier_api_key: &str) -> Result<Box<dyn SmsVerifier>, String> {
+pub fn create_sms_verifier<'a>(
+    sms_verifier: &str,
+    sms_verifier_api_key: &'a str
+) -> Result<Box<dyn SmsVerifier + 'a>, String> {
     match sms_verifier {
         "sms-activate" => Ok(Box::new(SmsActivate {
-            api_key: sms_verifier_api_key.to_string().clone(),
+            api_key: sms_verifier_api_key,
         })),
         _ => Err(format!("Unsupported SMS verifier: {}", sms_verifier))
     }
