@@ -1,19 +1,19 @@
-mod sabrina_handler;
+pub mod active;
+pub mod setup;
+
+use active::*;
+use crate::signups::setup::{setup_signup_context, run_signup};
 
 #[tauri::command]
-pub async fn sabrina_royal_arena(app_handle: tauri::AppHandle, proxy_group: String, mode: String) -> Result<(), String> {
-    let product_id: &str = "bdd68f6b-dd1c-4551-89d7-c168f8d6c3d0";
-    sabrina_handler::run(app_handle, product_id, proxy_group, mode).await
-}
+pub async fn sabrina_hallenstadion(app_handle: tauri::AppHandle, proxy_group: String, _mode: String) -> Result<(), String> {
+    let context = setup_signup_context(&app_handle, proxy_group)?;
+    let entry_limit = context.settings.integration.entry_limit;
 
-#[tauri::command]
-pub async fn sabrina_avicii_arena(app_handle: tauri::AppHandle, proxy_group: String, mode: String) -> Result<(), String> {
-    let product_id: &str = "a280873c-4ae9-44c9-9cc7-8f70f9d38cdd";
-    sabrina_handler::run(app_handle, product_id, proxy_group, mode).await
-}
-
-#[tauri::command]
-pub async fn sabrina_hallenstadion(app_handle: tauri::AppHandle, proxy_group: String, mode: String) -> Result<(), String> {
-    let product_id: &str = "49bdb6bf-1f63-4a46-a5dc-ab1cf79924f0";
-    sabrina_handler::run(app_handle, product_id, proxy_group, mode).await
+    run_signup(
+        context,
+        |account, context| {
+            Box::pin(dead_and_company_handler::process_account(account, context))
+        },
+        entry_limit
+    )
 }

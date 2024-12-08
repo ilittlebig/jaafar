@@ -1,4 +1,4 @@
-use reqwest::{Client, Method};
+use reqwest::Method;
 use std::collections::HashMap;
 use async_trait::async_trait;
 use serde_json::Value;
@@ -15,10 +15,10 @@ const GET_ACTIVATION_STATUS_URL: &str = "https://api.sms-activate.ae/stubs/handl
 
 #[async_trait]
 impl SmsVerifier for SmsActivate<'_> {
-    async fn get_phone_number(&self) -> Result<(String, String), String> {
+    async fn get_phone_number(&self, service: &str, country_code: &str) -> Result<(String, String), String> {
         let params = build_params(&self.api_key, "getNumber", Some(HashMap::from([
-            ("service", "ot"),
-            ("country", "46"),
+            ("service", service),
+            ("country", country_code),
         ])));
 
         let response = http_service::send_request::<()>(
@@ -68,17 +68,22 @@ fn build_params(api_key: &str, action: &str, additional: Option<HashMap<&str, &s
 
 fn parse_phone_number_response(response: &str) -> Result<(String, String), String> {
     let parts: Vec<&str> = response.split(":").collect();
-    if parts.len() == 3 && parts[0] == "ACCESS_NUMBER" {
-        let activation_id = parts[1].to_string();
-        let phone_number = parts[2].to_string();
-        Ok((activation_id, phone_number))
-    } else {
-        Err("Invalid response format".to_string())
+    match parts.get(0) {
+        Some(&"ACCESS_NUMBER") if parts.len() == 3 => {
+            let activation_id = parts[1].to_string();
+            let phone_number = parts[2].to_string();
+            Ok((activation_id, phone_number))
+        }
+        Some(&"NO_BALANCE") => Err("Insufficient balance".to_string()),
+        Some(error_code) => Err(format!("Error from API: {}", error_code)),
+        None => Err("Empty response from API".to_string()),
     }
 }
 
 fn parse_sms_response(response_json: &Value) -> Result<String, String> {
+    println!("{}", response_json);
     if let Some(sms) = response_json.get("sms") {
+        println!("{}", sms);
         match sms {
             Value::Null => Err("SMS code is not available yet".to_string()),
             Value::String(sms_str) => Ok(sms_str.clone()),

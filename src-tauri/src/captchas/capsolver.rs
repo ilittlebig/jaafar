@@ -1,6 +1,5 @@
-use reqwest::{Client, Method};
 use serde::{Serialize, Deserialize};
-use serde_json::Value;
+use reqwest::Method;
 use async_trait::async_trait;
 
 use super::CaptchaSolver;
@@ -99,7 +98,6 @@ async fn create_captcha_task(client_key: &str, task: CapSolverTask<'_>) -> Resul
 }
 
 async fn poll_captcha_solution<'a>(client_key: &'a str, task_id: String) -> Result<String, String> {
-    let client = Client::new();
     for _ in 0..120 {
         let get_task_result_payload = GetTaskResultRequest {
             client_key: client_key,
