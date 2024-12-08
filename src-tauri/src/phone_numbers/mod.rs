@@ -5,7 +5,7 @@ use smsactivate::SmsActivate;
 
 #[async_trait]
 pub trait SmsVerifier: Send + Sync {
-    async fn get_phone_number(&self) -> Result<(String, String), String>;
+    async fn get_phone_number(&self, service: &str, country_code: &str) -> Result<(String, String), String>;
     async fn get_sms_code(&self, id: &str) -> Result<String, String>;
 }
 
