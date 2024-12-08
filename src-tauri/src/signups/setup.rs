@@ -1,8 +1,10 @@
 use std::sync::Arc;
 use std::pin::Pin;
 use std::future::Future;
+use std::time::Duration;
 use tokio::sync::Semaphore;
 
+use crate::utils::retry::retry;
 use crate::services::files_service;
 use crate::services::proxies_service;
 use crate::services::settings::Settings;
@@ -13,6 +15,9 @@ pub struct SignupContext {
     pub proxies: Vec<String>,
     pub settings: Settings,
 }
+
+const RETRIES: usize = 3;
+const DURATION_BETWEEN_RETRIES: Duration = Duration::from_secs(1);
 
 /// Sets up the signup context by loading accounts, proxies and settings.
 ///
@@ -74,8 +79,17 @@ where
 
         tokio::spawn(async move {
             let _permit = semaphore.acquire().await;
-            if let Err(e) = process_account(account.clone(), context).await {
-                eprintln!("Error processing account {}: {}", account.email, e);
+            match retry(
+                || async {
+                    let context = Arc::clone(&context);
+                    let account = account.clone();
+                    process_account(account, context).await
+                },
+                RETRIES,
+                DURATION_BETWEEN_RETRIES,
+            ).await {
+                Ok(_) => (),
+                Err(e) => eprintln!("Error processing account {}: {}", account.email, e),
             }
         });
     }

@@ -44,31 +44,21 @@ pub async fn process_account(
     context: Arc<SignupContext>
 ) -> Result<(), String> {
     /*
-    let mut attempts = 0;
-
-    while attempts < max_request_retries {
-        attempts += 1;
-        println!("Attempt {}/{} for {}", attempts, max_request_retries, account.email);
-
-        match try_process_account(
-            account,
-            proxies,
-            activation_id,
-            phone_number,
-            max_request_retries,
-            sms_verifier,
-        ).await {
-            Ok(_) => return Ok(()),
-            Err(e) => {
-                if attempts == max_request_retries {
-                    return Err(format!("Failed to process account {} after {} attempts: {}", account.email, attempts, e));
-                }
-                println!("Error on attempt {}: {}", attempts, e);
+    match try_process_account(
+        account,
+        proxies,
+        activation_id,
+        phone_number,
+        max_request_retries,
+        sms_verifier,
+    ).await {
+        Ok(_) => return Ok(()),
+        Err(e) => {
+            if attempts == max_request_retries {
+                return Err(format!("Failed to process account {} after {} attempts: {}", account.email, attempts, e));
             }
+            println!("Error on attempt {}: {}", attempts, e);
         }
-
-        // Wait 1 second before trying again
-        tokio::time::sleep(Duration::from_secs(1)).await;
     }
     */
 
