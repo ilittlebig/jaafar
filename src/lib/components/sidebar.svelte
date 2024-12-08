@@ -8,6 +8,7 @@
 		{ label: "Signups", icon: "fa-pen", href: "/signups" },
 		{ label: "Accounts", icon: "fa-user-tie-hair", href: "/accounts" },
 		{ label: "Proxies", icon: "fa-globe", href: "/proxies" },
+		{ label: "Account Generator", icon: "fa-wind-turbine", href: "/account-generator" },
 	];
 </script>
 
