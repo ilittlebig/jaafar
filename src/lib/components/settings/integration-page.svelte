@@ -27,6 +27,7 @@
 
 	const smsVerifiers = [
 		{ value: "sms-activate", label: "SmsActivate" },
+		{ value: "sms-pva", label: "SmsPva" },
 	];
 
 	const selectedCaptcha = $derived(

@@ -1,7 +1,10 @@
 pub mod smsactivate;
+pub mod smspva;
 
 use async_trait::async_trait;
+
 use smsactivate::SmsActivate;
+use smspva::SmsPva;
 
 #[async_trait]
 pub trait SmsVerifier: Send + Sync {
@@ -15,6 +18,9 @@ pub fn create_sms_verifier<'a>(
 ) -> Result<Box<dyn SmsVerifier + 'a>, String> {
     match sms_verifier {
         "sms-activate" => Ok(Box::new(SmsActivate {
+            api_key: sms_verifier_api_key,
+        })),
+        "sms-pva" => Ok(Box::new(SmsPva {
             api_key: sms_verifier_api_key,
         })),
         _ => Err(format!("Unsupported SMS verifier: {}", sms_verifier))

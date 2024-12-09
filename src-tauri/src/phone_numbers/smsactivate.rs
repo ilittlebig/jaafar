@@ -10,8 +10,7 @@ pub struct SmsActivate<'a> {
     pub api_key: &'a str,
 }
 
-const GET_NUMBER_URL: &str = "https://api.sms-activate.ae/stubs/handler_api.php";
-const GET_ACTIVATION_STATUS_URL: &str = "https://api.sms-activate.ae/stubs/handler_api.php";
+const URL: &str = "https://api.sms-activate.ae/stubs/handler_api.php";
 
 #[async_trait]
 impl SmsVerifier for SmsActivate<'_> {
@@ -22,7 +21,7 @@ impl SmsVerifier for SmsActivate<'_> {
         ])));
 
         let response = http_service::send_request::<()>(
-            GET_NUMBER_URL,
+            URL,
             Method::GET,
             None,
             Some(&params),
@@ -40,7 +39,7 @@ impl SmsVerifier for SmsActivate<'_> {
         ])));
 
         let response = http_service::send_request::<()>(
-            GET_ACTIVATION_STATUS_URL,
+            URL,
             Method::GET,
             None,
             Some(&params),

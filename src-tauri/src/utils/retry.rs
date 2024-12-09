@@ -7,13 +7,14 @@ pub async fn retry<F, T, E>(
     delay: Duration,
 ) -> Result<T, E>
 where
-    F: Future<Output = Result<T, E>>
+    F: Future<Output = Result<T, E>>, E: std::fmt::Debug
 {
     for attempt in 1..=max_retries {
         println!("Attempt {}/{}", attempt, max_retries);
         match operation().await {
             Ok(result) => return Ok(result),
             Err(e) => {
+                println!("Attempt failed: {:?}", e);
                 if attempt < max_retries {
                     sleep(delay).await;
                 } else {
