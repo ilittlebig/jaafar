@@ -16,7 +16,7 @@ pub struct SignupContext {
     pub settings: Settings,
 }
 
-const RETRIES: usize = 3;
+const RETRIES: usize = 1;
 const DURATION_BETWEEN_RETRIES: Duration = Duration::from_secs(1);
 
 /// Sets up the signup context by loading accounts, proxies and settings.
