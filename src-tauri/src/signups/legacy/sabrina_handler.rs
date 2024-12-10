@@ -9,7 +9,7 @@ use crate::services::proxies_service;
 use crate::services::http_service;
 use crate::services::account_service::Account;
 use crate::services::settings::Settings;
-use crate::captchas::create_solver;
+use crate::captcha_solvers::create_solver;
 
 #[derive(Serialize)]
 struct GraphQLRequest {
