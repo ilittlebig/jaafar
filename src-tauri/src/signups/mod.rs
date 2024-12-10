@@ -1,5 +1,6 @@
 pub mod active;
 pub mod setup;
+pub mod platforms;
 
 use active::*;
 use crate::signups::setup::{setup_signup_context, run_signup};

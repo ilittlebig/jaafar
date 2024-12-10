@@ -9,7 +9,7 @@ extern crate objc;
 mod plugins;
 mod signups;
 mod services;
-mod captchas;
+mod captcha_solvers;
 mod phone_numbers;
 mod utils;
 

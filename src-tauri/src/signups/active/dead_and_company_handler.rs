@@ -1,24 +1,16 @@
-use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, REFERER, ORIGIN};
-use reqwest::Method;
-use serde::Serialize;
-use serde_json::Value;
-use std::time::Duration;
-use std::thread::sleep;
-use ua_generator::ua::spoof_ua;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::signups::setup::SignupContext;
-use crate::services::proxies_service;
-use crate::services::http_service;
 use crate::services::account_service::Account;
-use crate::phone_numbers::{SmsVerifier, create_sms_verifier};
-use crate::utils::retry::retry;
+use crate::signups::platforms::seated::process_signup;
 
 pub async fn process_account(
     account: Arc<Account>,
     context: Arc<SignupContext>
 ) -> Result<(), String> {
+    process_signup("1c16af50-df45-4d4f-8848-b626888c8186", account, context).await?;
+
+    /*
     let sms_verifier = create_sms_verifier(
         &context.settings.integration.sms_verifier,
         &context.settings.integration.sms_verifier_api_key,
@@ -27,8 +19,6 @@ pub async fn process_account(
     let (order_id, phone_number) = sms_verifier
         .get_phone_number("opt19", "NL")
         .await?;
-
-    println!("{} {}", order_id, phone_number);
 
     let body = serde_json::json!({
         "phoneNumber": phone_number,
@@ -40,7 +30,7 @@ pub async fn process_account(
     */
 
     let url = "https://api.seated.com/oauth/verify";
-    let apikey = "";
+    let apikey = "6b854f7387d9098896275ef57369b35c374ad5d4";
 
     let mut params = HashMap::new();
     params.insert("url".to_string(), url.to_string());
@@ -63,6 +53,7 @@ pub async fn process_account(
         Duration::from_secs(15)
     ).await?;
     println!("SMS CODE: {}", sms_code);
+    */
 
     Ok(())
 }
