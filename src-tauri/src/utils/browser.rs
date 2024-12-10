@@ -1,6 +1,8 @@
+use std::time::Duration;
+use tokio::time::timeout;
 use futures::StreamExt;
+use chromiumoxide::{Page, Element};
 use chromiumoxide::browser::{Browser, BrowserConfig};
-use chromiumoxide::Page;
 
 /// Launches a new browser instance and spawns a handler task to manage WebSocket communication.
 ///
@@ -58,4 +60,32 @@ pub async fn setup_browser_stealth(page: &Page) -> Result<(), String> {
         .await
         .map_err(|e| e.to_string())?;
     Ok(())
+}
+
+/// Waits for an element matching the selector to appear on the page.
+///
+/// # Arguments
+/// - `page`: The `Page` instance to search for the element.
+/// - `selector`: The CSS selector to find the element.
+/// - `timeout_duration`: How long to wait before timing out.
+///
+/// # Returns
+/// The element handle if found, or an error if the timeout is reached.
+pub async fn wait_for_element(
+    page: &Page,
+    selector: &str,
+    timeout_duration: Duration,
+) -> Result<Element, String> {
+    let start = std::time::Instant::now();
+    while start.elapsed() < timeout_duration {
+        if let Ok(element) = page.find_element(selector).await {
+            return Ok(element);
+        }
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+
+    Err(format!(
+        "Timeout: Element with selector '{}' not found within {:?}",
+        selector, timeout_duration
+    ))
 }
