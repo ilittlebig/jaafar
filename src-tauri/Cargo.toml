@@ -28,6 +28,7 @@ async-trait = "0.1.83"
 regex = "1.11.1"
 chromiumoxide = { git = "https://github.com/mattsse/chromiumoxide", features = ["tokio-runtime"], default-features = false, branch = "main" }
 futures = "0.3"
+fake = "3.0.1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.25.0"

@@ -15,14 +15,14 @@ pub async fn process_signup(
     account: Arc<Account>,
     context: Arc<SignupContext>
 ) -> Result<(), String> {
-    let (mut browser, handler_task) = launch_browser(false).await?;
+    let (mut browser, handler_task) = launch_browser(false, &context.proxies).await?;
     let sms_verifier = create_sms_verifier(
         &context.settings.integration.sms_verifier,
         &context.settings.integration.sms_verifier_api_key,
     )?;
 
     let (order_id, phone_number) = sms_verifier
-        .get_phone_number("opt19", "UK")
+        .get_phone_number("opt19", "DE")
         .await?;
 
     let formatted_url = format!("{}/{}", URL, id);
@@ -30,11 +30,10 @@ pub async fn process_signup(
         .await
         .map_err(|e| e.to_string())?;
 
-    setup_browser_stealth(&page);
+    setup_browser_stealth(&page).await?;
 
-    let html = page.wait_for_navigation().await.unwrap().content().await.unwrap();
-    fill_signup_form(&page, "Elias", "Shelby", "elias@jamee.se").await?;
-    fill_phone_number_form(&page, &phone_number).await?;
+    fill_signup_form(&page, &account.firstname, &account.lastname, &account.email).await?;
+    fill_phone_number_form(&page, &phone_number, "SE").await?;
 
     let sms_code = retry(
         || async { sms_verifier.get_sms_code(&order_id).await },
@@ -107,8 +106,8 @@ async fn fill_signup_form(
 async fn fill_phone_number_form(
     page: &Page,
     phone_number: &str,
+    country_code: &str,
 ) -> Result<(), String> {
-    let country_code = &phone_number[..3];
     let number_without_country_code = &phone_number[3..];
 
     wait_for_element(page, r#"div[data-test-show-country-selector]"#, Duration::from_secs(10))
@@ -117,7 +116,7 @@ async fn fill_phone_number_form(
         .await
         .map_err(|e| e.to_string())?;
 
-    let selector = format!(r#"div[data-test-calling-code="{}"]"#, "GB");
+    let selector = format!(r#"div[data-test-calling-code="{}"]"#, country_code);
     wait_for_element(page, &selector, Duration::from_secs(10))
         .await?
         .click()

@@ -72,7 +72,9 @@ where
     let semaphore = Arc::new(Semaphore::new(semaphore_limit));
     let accounts = context.accounts.clone();
 
-    for account in accounts.into_iter().map(Arc::new) {
+    for mut account in accounts.into_iter().map(Arc::new) {
+        Arc::make_mut(&mut account).populate_random_fields();
+
         let semaphore = Arc::clone(&semaphore);
         let context = Arc::clone(&context);
         let process_account = process_account.clone();
