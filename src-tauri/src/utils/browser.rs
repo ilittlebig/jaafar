@@ -3,26 +3,47 @@ use tokio::time::timeout;
 use futures::StreamExt;
 use chromiumoxide::{Page, Element};
 use chromiumoxide::browser::{Browser, BrowserConfig};
+use ua_generator::ua::spoof_ua;
 
-/// Launches a new browser instance and spawns a handler task to manage WebSocket communication.
+use crate::services::proxies_service;
+
+/// Launches a browser instance and spawns a handler task for WebSocket communication.
+///
+/// # Arguments
+/// - `headless`: Runs the browser in headless mode if `true`, otherwise with UI.
+/// - `proxies`: A reference to a list of proxy strings.
 ///
 /// # Returns
-/// A `Result` containing:
-/// - `(Browser, tokio::task::JoinHandle<()>)`: A tuple with the browser instance and the task handle for the WebSocket handler if successful.
-/// - `String`: An error message if the browser launch fails.
-pub async fn launch_browser(headless: bool) -> Result<(Browser, tokio::task::JoinHandle<()>), String> {
-    let browser_config = if headless {
+/// A `Result` with:
+/// - `(Browser, tokio::task::JoinHandle<()>)`: On success.
+/// - `String`: Error message on failure.
+pub async fn launch_browser(
+    headless: bool,
+    proxies: &Vec<String>
+) -> Result<(Browser, tokio::task::JoinHandle<()>), String> {
+    let proxy_string = proxies_service::get_random_proxy(proxies)?;
+    let proxy = proxies_service::format_proxy(proxy_string, true)?;
+
+    let mut browser_config_builder = if headless {
         BrowserConfig::builder()
-            .arg("--disable-blink-features=AutomationControlled")
-            .build()
-            .map_err(|e| e.to_string())?
     } else {
-        BrowserConfig::builder()
-            .with_head()
-            .arg("--disable-blink-features=AutomationControlled")
-            .build()
-            .map_err(|e| e.to_string())?
+        BrowserConfig::builder().with_head()
     };
+
+    let user_agent = spoof_ua();
+    browser_config_builder = browser_config_builder
+        .arg(format!("--proxy-server=http={}", proxy))
+        .arg(format!("--user-agent={}", user_agent))
+        .arg("--disable-blink-features=AutomationControlled")
+        .arg("--disable-software-rasterizer")
+        .arg("--no-sandbox")
+        .arg("--disable-dev-shm-usage")
+        .arg("--disable-extensions")
+        .arg("--disable-default-apps");
+
+    let browser_config = browser_config_builder
+        .build()
+        .map_err(|e| e.to_string())?;
 
     let (browser, mut handler) = Browser::launch(browser_config)
         .await
