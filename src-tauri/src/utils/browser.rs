@@ -25,13 +25,13 @@ pub async fn launch_browser(
     proxy: &str,
 ) -> Result<(Browser, tokio::task::JoinHandle<()>), String> {
     let mut browser_config_builder = if headless {
-        BrowserConfig::builder().new_headless_mode()
+        BrowserConfig::builder()
     } else {
         BrowserConfig::builder().with_head()
     };
 
     browser_config_builder = browser_config_builder
-        .arg(format!("--proxy-server=http://{}", proxy))
+        .arg(format!("--proxy-server={}", proxy))
         .arg("--disable-blink-features=AutomationControlled")
         .arg("--disable-software-rasterizer")
         .arg("--disable-dev-shm-usage")
@@ -81,7 +81,7 @@ pub async fn setup_browser_stealth(page: &Page) -> Result<(), String> {
             Object.defineProperty(navigator, 'webdriver', {{
                 get: () => undefined
             }});
-        }}, 250);
+        }}, 1000);
 
         // Override WebGL properties
         const getParameter = WebGLRenderingContext.prototype.getParameter;
@@ -96,16 +96,9 @@ pub async fn setup_browser_stealth(page: &Page) -> Result<(), String> {
         webgl_renderer = browser_profile.webgl_renderer
     );
 
-    page.set_user_agent(browser_profile.ua)
-        .await
-        .map_err(|e| e.to_string())?;
     page.evaluate_on_new_document(stealth_script)
         .await
         .map_err(|e| e.to_string())?;
-
-    // WebDriver is always present without this sleep for some reason
-    sleep(Duration::from_millis(250)).await;
-
     Ok(())
 }
 
