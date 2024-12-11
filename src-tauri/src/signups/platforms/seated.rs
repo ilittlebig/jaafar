@@ -1,37 +1,56 @@
 use std::time::Duration;
 use std::sync::Arc;
 use chromiumoxide::Page;
+use chromiumoxide::auth::Credentials;
 
 use crate::signups::setup::SignupContext;
-use crate::services::account_service::Account;
 use crate::phone_numbers::create_sms_verifier;
+use crate::services::account_service::Account;
+use crate::services::proxies_service;
 use crate::utils::browser::{launch_browser, setup_browser_stealth, wait_for_element};
 use crate::utils::retry::retry;
 
-const URL: &str = "https://go.seated.com/event-reminders";
+const URL: &str = "https://deviceandbrowserinfo.com/info_device";
 
 pub async fn process_signup(
     id: &str,
     account: Arc<Account>,
     context: Arc<SignupContext>
 ) -> Result<(), String> {
-    let (mut browser, handler_task) = launch_browser(false, &context.proxies).await?;
+    let proxy = proxies_service::get_random_proxy(&context.proxies)?;
+    let (host, port, username, password) = proxies_service::parse_proxy(&proxy)?;
+
+    let (mut browser, handler_task) = launch_browser(false, &proxy).await?;
     let sms_verifier = create_sms_verifier(
         &context.settings.integration.sms_verifier,
         &context.settings.integration.sms_verifier_api_key,
     )?;
 
+    /*
     let (order_id, phone_number) = sms_verifier
         .get_phone_number("opt19", "DE")
         .await?;
+    */
 
-    let formatted_url = format!("{}/{}", URL, id);
-    let page = browser.new_page(formatted_url)
+    let formatted_url = format!("{}", URL);
+    let page = browser.new_page("about:blank") // about:blank
         .await
         .map_err(|e| e.to_string())?;
 
-    setup_browser_stealth(&page).await?;
+    //setup_browser_stealth(&page).await?;
 
+    if let (Some(username), Some(password)) = (username, password) {
+        let credentials = Credentials { username, password };
+        page.authenticate(credentials)
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+
+    page.goto(formatted_url)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    /*
     fill_signup_form(&page, &account.firstname, &account.lastname, &account.email).await?;
     fill_phone_number_form(&page, &phone_number, "SE").await?;
 
@@ -42,6 +61,7 @@ pub async fn process_signup(
     ).await?;
 
     fill_phone_number_code_form(&page, &sms_code).await?;
+    */
 
     /*
     browser.close()

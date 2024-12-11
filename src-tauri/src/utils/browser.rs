@@ -1,17 +1,20 @@
 use std::time::Duration;
-use tokio::time::timeout;
+use tokio::time::{timeout, sleep};
 use futures::StreamExt;
 use chromiumoxide::{Page, Element};
 use chromiumoxide::browser::{Browser, BrowserConfig};
-use ua_generator::ua::spoof_ua;
 
 use crate::services::proxies_service;
+use crate::utils::profiles::get_random_profile;
 
 /// Launches a browser instance and spawns a handler task for WebSocket communication.
 ///
 /// # Arguments
 /// - `headless`: Runs the browser in headless mode if `true`, otherwise with UI.
-/// - `proxies`: A reference to a list of proxy strings.
+/// - `proxy`: The proxy string, which can include the following formats:
+///   - `host:port` (unauthenticated proxy)
+///   - `username:password@host:port` (authenticated proxy)
+///   - Optional prefixes such as `http://` or `https://` may also be included.
 ///
 /// # Returns
 /// A `Result` with:
@@ -19,27 +22,22 @@ use crate::services::proxies_service;
 /// - `String`: Error message on failure.
 pub async fn launch_browser(
     headless: bool,
-    proxies: &Vec<String>
+    proxy: &str,
 ) -> Result<(Browser, tokio::task::JoinHandle<()>), String> {
-    let proxy_string = proxies_service::get_random_proxy(proxies)?;
-    let proxy = proxies_service::format_proxy(proxy_string, true)?;
-
     let mut browser_config_builder = if headless {
         BrowserConfig::builder()
     } else {
         BrowserConfig::builder().with_head()
     };
 
-    let user_agent = spoof_ua();
     browser_config_builder = browser_config_builder
-        .arg(format!("--proxy-server=http={}", proxy))
-        .arg(format!("--user-agent={}", user_agent))
+        .arg(format!("--proxy-server={}", proxy))
         .arg("--disable-blink-features=AutomationControlled")
         .arg("--disable-software-rasterizer")
-        .arg("--no-sandbox")
         .arg("--disable-dev-shm-usage")
         .arg("--disable-extensions")
-        .arg("--disable-default-apps");
+        .arg("--disable-default-apps")
+        .no_sandbox();
 
     let browser_config = browser_config_builder
         .build()
@@ -71,13 +69,34 @@ pub async fn launch_browser(
 /// - `()`: If the stealth configuration is successfully applied.
 /// - `String`: An error message if the operation fails.
 pub async fn setup_browser_stealth(page: &Page) -> Result<(), String> {
-    let stealth_script = r#"
-        Object.defineProperty(navigator, 'webdriver', {
-            get: () => undefined
-        });
-    "#;
+    let browser_profile = get_random_profile();
 
-    page.evaluate(stealth_script)
+    let stealth_script = format!(r#"
+        // Override navigator properties
+        Object.defineProperty(navigator, 'platform', {{ get: () => '{platform}' }});
+        Object.defineProperty(navigator, 'vendor', {{ get: () => '{vendor}' }});
+
+        // Override WebDriver
+        setTimeout(() => {{
+            Object.defineProperty(navigator, 'webdriver', {{
+                get: () => undefined
+            }});
+        }}, 1000);
+
+        // Override WebGL properties
+        const getParameter = WebGLRenderingContext.prototype.getParameter;
+        WebGLRenderingContext.prototype.getParameter = function(parameter) {{
+            if (parameter === 37445) return '{vendor}'; // VENDOR
+            if (parameter === 37446) return '{webgl_renderer}'; // RENDERER
+            return getParameter(parameter);
+        }};
+    "#,
+        platform = browser_profile.platform,
+        vendor = browser_profile.vendor,
+        webgl_renderer = browser_profile.webgl_renderer
+    );
+
+    page.evaluate_on_new_document(stealth_script)
         .await
         .map_err(|e| e.to_string())?;
     Ok(())
@@ -102,7 +121,7 @@ pub async fn wait_for_element(
         if let Ok(element) = page.find_element(selector).await {
             return Ok(element);
         }
-        tokio::time::sleep(Duration::from_millis(100)).await;
+        sleep(Duration::from_millis(100)).await;
     }
 
     Err(format!(

@@ -12,6 +12,7 @@ mod services;
 mod captcha_solvers;
 mod phone_numbers;
 mod utils;
+mod data;
 
 use plugins::tauri_traffic_light_positioner_plugin;
 
