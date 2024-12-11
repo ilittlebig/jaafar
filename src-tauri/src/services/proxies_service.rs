@@ -37,21 +37,37 @@ pub fn transform_string_to_proxy(proxy: &str) -> Result<Proxy, String> {
 /// Parses a proxy string into its components: host, port, username, and password.
 ///
 /// # Arguments
-/// - `proxy`: The proxy string in the format `host:port:username:password`.
+/// - `proxy`: The proxy string, which can include the following formats:
+///   - `host:port` (unauthenticated proxy)
+///   - `username:password@host:port` (authenticated proxy)
 ///
 /// # Returns
 /// A tuple `(host, port, username, password)` if successful.
 pub fn parse_proxy(proxy: &str) -> Result<(String, u16, Option<String>, Option<String>), String> {
-    let parts: Vec<&str> = proxy.split(':').collect();
-    if parts.len() < 2 || parts.len() > 4 {
+    let auth_split: Vec<&str> = proxy.rsplitn(2, '@').collect();
+    let (auth_part, address_part) = if auth_split.len() == 2 {
+        (Some(auth_split[1]), auth_split[0])
+    } else {
+        (None, auth_split[0])
+    };
+
+    let address_split: Vec<&str> = address_part.split(':').collect();
+    if address_split.len() != 2 {
         return Err(format!("Invalid proxy format: {}", proxy));
     }
 
-    let host = parts[0].to_string();
-    let port = parts[1].parse::<u16>().map_err(|_| format!("Invalid port: {}", parts[1]))?;
+    let host = address_split[0].to_string();
+    let port = address_split[1].parse::<u16>().map_err(|_| format!("Invalid port: {}", address_split[1]))?;
 
-    let username = if parts.len() > 2 { Some(parts[2].to_string()) } else { None };
-    let password = if parts.len() > 3 { Some(parts[3].to_string()) } else { None };
+    let (username, password) = if let Some(auth) = auth_part {
+        let creds: Vec<&str> = auth.split(':').collect();
+        if creds.len() != 2 {
+            return Err(format!("Invalid authentication format in proxy: {}", proxy));
+        }
+        (Some(creds[0].to_string()), Some(creds[1].to_string()))
+    } else {
+        (None, None)
+    };
 
     Ok((host, port, username, password))
 }
