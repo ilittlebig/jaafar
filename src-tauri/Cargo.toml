@@ -26,7 +26,7 @@ tokio = { version = "1", features = ["full"] }
 ua_generator = "0.5.4"
 async-trait = "0.1.83"
 regex = "1.11.1"
-chromiumoxide = { git = "https://github.com/mattsse/chromiumoxide", features = ["tokio-runtime"], default-features = false, branch = "main" }
+chromiumoxide = { path = "../../chromiumoxide" }
 futures = "0.3"
 fake = "3.0.1"
 
