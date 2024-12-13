@@ -3,13 +3,6 @@ use tokio::time::{timeout, sleep};
 use futures::StreamExt;
 use chromiumoxide::{Page, Element};
 use chromiumoxide::browser::{Browser, BrowserConfig};
-use chromiumoxide::cdp::browser_protocol::target::CreateBrowserContextParams;
-use chromiumoxide::error::CdpError;
-
-use chromiumoxide::cdp::browser_protocol::fetch::{ContinueWithAuthParams, EnableParams, AuthChallengeResponseResponse};
-
-use tracing::info;
-use tracing_subscriber;
 
 use crate::services::proxies_service;
 use crate::utils::profiles::get_random_profile;
@@ -18,9 +11,8 @@ use crate::utils::profiles::get_random_profile;
 ///
 /// # Arguments
 /// - `headless`: Runs the browser in headless mode if `true`, otherwise with UI.
-/// - `proxy`: The proxy string, which can include the following formats:
+/// - `proxy`: The proxy string, which has to be in the following format:
 ///   - `host:port` (unauthenticated proxy)
-///   - `username:password@host:port` (authenticated proxy)
 ///
 /// # Returns
 /// A `Result` with:
@@ -35,11 +27,6 @@ pub async fn launch_browser(
     } else {
         BrowserConfig::builder().with_head()
     };
-
-    /*
-    let mut create_content = CreateBrowserContextParams::default();
-    create_content.proxy_server = Some(format!("http={}", proxy));
-    */
 
     browser_config_builder = browser_config_builder
         .arg(format!("--proxy-server={}", proxy))
@@ -60,55 +47,13 @@ pub async fn launch_browser(
         .await
         .expect("Failed to launch browser");
 
-    /*
-    let handler_task = tokio::task::spawn(async move {
-//        tokio::pin!(handler);
-        loop {
-            match handler.next().await {
-                Some(k) => {
-                    if let Err(e) = k {
-                        match e {
-                            CdpError::LaunchExit(_, _)
-                            | CdpError::LaunchTimeout(_)
-                            | CdpError::LaunchIo(_, _) => {
-                                break;
-                            }
-                            _ => {
-                                continue;
-                            }
-                        }
-                    }
-                }
-                _ => break,
-            }
-        }
-    });
-    */
-
     let handler_task = tokio::spawn(async move {
-        tokio::pin!(handler);
         while let Some(h) = handler.next().await {
             if h.is_err() {
                 break;
             }
         }
     });
-
-    /*
-    println!("Trying to enable Fetch domain.");
-    browser
-        .execute(EnableParams {
-            handle_auth_requests: Some(true), // Set to true if you're handling auth challenges
-            patterns: None,           // Leave empty to intercept all requests
-//            ..Default::default()
-        })
-        .await
-        .expect("Failed to enable Fetch domain");
-    println!("Minimal test completed.");
-    */
-
-//    let c = browser.create_browser_context(create_content).await.unwrap();
-//    browser.send_new_context(c.clone()).await;
 
     Ok((browser, handler_task))
 }
@@ -151,6 +96,11 @@ pub async fn setup_browser_stealth(page: &Page) -> Result<(), String> {
         webgl_renderer = browser_profile.webgl_renderer
     );
 
+    /*
+    page.set_user_agent(browser_profile.ua)
+        .await
+        .map_err(|e| e.to_string())?;
+    */
     page.evaluate_on_new_document(stealth_script)
         .await
         .map_err(|e| e.to_string())?;
