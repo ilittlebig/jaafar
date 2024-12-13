@@ -1,17 +1,11 @@
 use std::sync::Arc;
-use std::time::Duration;
-use futures::StreamExt;
-
-use chromiumoxide::Page;
-use chromiumoxide::auth::Credentials;
-use chromiumoxide::cdp::browser_protocol::fetch::{
-    ContinueRequestParams, EventRequestPaused
-};
 
 use crate::services::account_service::Account;
 use crate::services::proxies_service;
 use crate::signups::setup::SignupContext;
-use crate::utils::browser::{launch_browser, setup_browser_stealth};
+use crate::utils::browser::{
+    launch_browser, create_page
+};
 
 const URL: &str = "https://deviceandbrowserinfo.com/info_device";
 
@@ -25,42 +19,14 @@ pub async fn process_signup(
     let proxy_address = format!("{}:{}", host, port);
 
     let (browser, handler_task) = launch_browser(false, &proxy_address).await?;
-    let page = Arc::new(browser.new_page("about:blank")
-        .await
-        .expect("Failed to create page"));
+    let (page, intercept_task) = create_page(Arc::clone(&browser), username, password).await?;
 
-    let mut request_paused = page.event_listener::<EventRequestPaused>()
-        .await
-        .expect("Failed to ...");
-
-    let intercept_page = page.clone();
-    let intercept_handle = tokio::spawn(async move {
-        while let Some(event) = request_paused.next().await {
-            let params = ContinueRequestParams::builder()
-                .request_id(event.request_id.clone())
-                .build()
-                .expect("Failed to ...");
-
-            if let Err(e) = intercept_page.execute(params).await {
-                eprintln!("Failed to continue request: {}", e);
-            }
-        }
-    });
-
-    if let (Some(username), Some(password)) = (username, password) {
-        let credentials = Credentials { username, password };
-        page.authenticate(credentials)
-            .await
-            .map_err(|e| e.to_string())?;
-    }
-
-    setup_browser_stealth(&page).await?;
-
-    let formatted_url = format!("{}", URL);
-    page.goto(formatted_url)
+    page.goto(URL)
         .await
         .map_err(|e| e.to_string())?;
-    page.wait_for_navigation().await.unwrap();
+    page.wait_for_navigation()
+        .await
+        .map_err(|e| e.to_string())?;
 
     /*
     browser.close()
@@ -70,10 +36,10 @@ pub async fn process_signup(
 
     handler_task
         .await
-        .map_err(|e| e.to_string())?;
-    intercept_handle
+        .map_err(|e| format!("Handler task failed: {}", e))?;
+    intercept_task
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("Intercept task failed: {}", e))?;
 
     Ok(())
 }
