@@ -3,6 +3,13 @@ use tokio::time::{timeout, sleep};
 use futures::StreamExt;
 use chromiumoxide::{Page, Element};
 use chromiumoxide::browser::{Browser, BrowserConfig};
+use chromiumoxide::cdp::browser_protocol::target::CreateBrowserContextParams;
+use chromiumoxide::error::CdpError;
+
+use chromiumoxide::cdp::browser_protocol::fetch::{ContinueWithAuthParams, EnableParams, AuthChallengeResponseResponse};
+
+use tracing::info;
+use tracing_subscriber;
 
 use crate::services::proxies_service;
 use crate::utils::profiles::get_random_profile;
@@ -14,7 +21,6 @@ use crate::utils::profiles::get_random_profile;
 /// - `proxy`: The proxy string, which can include the following formats:
 ///   - `host:port` (unauthenticated proxy)
 ///   - `username:password@host:port` (authenticated proxy)
-///   - Optional prefixes such as `http://` or `https://` may also be included.
 ///
 /// # Returns
 /// A `Result` with:
@@ -30,6 +36,11 @@ pub async fn launch_browser(
         BrowserConfig::builder().with_head()
     };
 
+    /*
+    let mut create_content = CreateBrowserContextParams::default();
+    create_content.proxy_server = Some(format!("http={}", proxy));
+    */
+
     browser_config_builder = browser_config_builder
         .arg(format!("--proxy-server={}", proxy))
         .arg("--disable-blink-features=AutomationControlled")
@@ -37,23 +48,67 @@ pub async fn launch_browser(
         .arg("--disable-dev-shm-usage")
         .arg("--disable-extensions")
         .arg("--disable-default-apps")
+        .enable_request_intercept()
+        .disable_cache()
         .no_sandbox();
 
     let browser_config = browser_config_builder
         .build()
-        .map_err(|e| e.to_string())?;
+        .expect("Failed to build browser config");
 
-    let (browser, mut handler) = Browser::launch(browser_config)
+    let (mut browser, mut handler) = Browser::launch(browser_config)
         .await
-        .map_err(|e| e.to_string())?;
+        .expect("Failed to launch browser");
+
+    /*
+    let handler_task = tokio::task::spawn(async move {
+//        tokio::pin!(handler);
+        loop {
+            match handler.next().await {
+                Some(k) => {
+                    if let Err(e) = k {
+                        match e {
+                            CdpError::LaunchExit(_, _)
+                            | CdpError::LaunchTimeout(_)
+                            | CdpError::LaunchIo(_, _) => {
+                                break;
+                            }
+                            _ => {
+                                continue;
+                            }
+                        }
+                    }
+                }
+                _ => break,
+            }
+        }
+    });
+    */
 
     let handler_task = tokio::spawn(async move {
+        tokio::pin!(handler);
         while let Some(h) = handler.next().await {
             if h.is_err() {
                 break;
             }
         }
     });
+
+    /*
+    println!("Trying to enable Fetch domain.");
+    browser
+        .execute(EnableParams {
+            handle_auth_requests: Some(true), // Set to true if you're handling auth challenges
+            patterns: None,           // Leave empty to intercept all requests
+//            ..Default::default()
+        })
+        .await
+        .expect("Failed to enable Fetch domain");
+    println!("Minimal test completed.");
+    */
+
+//    let c = browser.create_browser_context(create_content).await.unwrap();
+//    browser.send_new_context(c.clone()).await;
 
     Ok((browser, handler_task))
 }
