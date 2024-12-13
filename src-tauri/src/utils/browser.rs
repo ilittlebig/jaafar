@@ -1,10 +1,17 @@
+use std::sync::Arc;
 use std::time::Duration;
-use tokio::time::{timeout, sleep};
-use futures::StreamExt;
-use chromiumoxide::{Page, Element};
-use chromiumoxide::browser::{Browser, BrowserConfig};
+use tokio::time::sleep;
+use tokio::task::JoinHandle;
 
-use crate::services::proxies_service;
+use futures::StreamExt;
+
+use chromiumoxide::{Page, Element};
+use chromiumoxide::auth::Credentials;
+use chromiumoxide::browser::{Browser, BrowserConfig};
+use chromiumoxide::cdp::browser_protocol::fetch::{
+    ContinueRequestParams, EventRequestPaused
+};
+
 use crate::utils::profiles::get_random_profile;
 
 /// Launches a browser instance and spawns a handler task for WebSocket communication.
@@ -21,7 +28,7 @@ use crate::utils::profiles::get_random_profile;
 pub async fn launch_browser(
     headless: bool,
     proxy: &str,
-) -> Result<(Browser, tokio::task::JoinHandle<()>), String> {
+) -> Result<(Arc<Browser>, JoinHandle<()>), String> {
     let mut browser_config_builder = if headless {
         BrowserConfig::builder()
     } else {
@@ -43,7 +50,7 @@ pub async fn launch_browser(
         .build()
         .expect("Failed to build browser config");
 
-    let (mut browser, mut handler) = Browser::launch(browser_config)
+    let (browser, mut handler) = Browser::launch(browser_config)
         .await
         .expect("Failed to launch browser");
 
@@ -55,7 +62,80 @@ pub async fn launch_browser(
         }
     });
 
+    let browser = Arc::new(browser);
     Ok((browser, handler_task))
+}
+
+/// Creates a new browser page, sets up request interception, authenticates, and configures stealth mode.
+///
+/// # Arguments
+/// - `browser` - A shared reference to the `Browser` instance.
+/// - `username` - Optional username page authentication.
+/// - `password` - Optional password page authentication.
+///
+/// # Returns
+/// Returns a `Result` containing:
+/// - `(Arc<Page>, JoinHandle<()>)` on success.
+/// - `String` with an error message on failure.
+pub async fn create_page(
+    browser: Arc<Browser>,
+    username: Option<String>,
+    password: Option<String>,
+) -> Result<(Arc<Page>, JoinHandle<()>), String> {
+    let page = Arc::new(browser.new_page("about:blank")
+        .await
+        .expect("Failed to create page"));
+
+    let mut request_paused = page.event_listener::<EventRequestPaused>()
+        .await
+        .expect("Failed to ...");
+
+    let intercept_page = page.clone();
+    let intercept_task = tokio::spawn(async move {
+        while let Some(event) = request_paused.next().await {
+            let params = ContinueRequestParams::builder()
+                .request_id(event.request_id.clone())
+                .build()
+                .expect("Failed to ...");
+
+            if let Err(e) = intercept_page.execute(params).await {
+                eprintln!("Failed to continue request: {}", e);
+            }
+        }
+    });
+
+    authenticate_page(&page, username, password).await?;
+    setup_browser_stealth(&page).await?;
+
+    Ok((page, intercept_task))
+}
+
+/// Waits for an element matching the selector to appear on the page.
+///
+/// # Arguments
+/// - `page`: The `Page` instance to search for the element.
+/// - `selector`: The CSS selector to find the element.
+/// - `timeout_duration`: How long to wait before timing out.
+///
+/// # Returns
+/// The element handle if found, or an error if the timeout is reached.
+pub async fn wait_for_element(
+    page: &Page,
+    selector: &str,
+    timeout_duration: Duration,
+) -> Result<Element, String> {
+    let start = std::time::Instant::now();
+    while start.elapsed() < timeout_duration {
+        if let Ok(element) = page.find_element(selector).await {
+            return Ok(element);
+        }
+        sleep(Duration::from_millis(100)).await;
+    }
+
+    Err(format!(
+        "Timeout: Element with selector '{}' not found within {:?}",
+        selector, timeout_duration
+    ))
 }
 
 /// Configures the browser page to operate in stealth mode by overriding browser properties
@@ -68,7 +148,7 @@ pub async fn launch_browser(
 /// A `Result` containing:
 /// - `()`: If the stealth configuration is successfully applied.
 /// - `String`: An error message if the operation fails.
-pub async fn setup_browser_stealth(page: &Page) -> Result<(), String> {
+async fn setup_browser_stealth(page: &Page) -> Result<(), String> {
     let browser_profile = get_random_profile();
 
     let stealth_script = format!(r#"
@@ -107,30 +187,16 @@ pub async fn setup_browser_stealth(page: &Page) -> Result<(), String> {
     Ok(())
 }
 
-/// Waits for an element matching the selector to appear on the page.
-///
-/// # Arguments
-/// - `page`: The `Page` instance to search for the element.
-/// - `selector`: The CSS selector to find the element.
-/// - `timeout_duration`: How long to wait before timing out.
-///
-/// # Returns
-/// The element handle if found, or an error if the timeout is reached.
-pub async fn wait_for_element(
+async fn authenticate_page(
     page: &Page,
-    selector: &str,
-    timeout_duration: Duration,
-) -> Result<Element, String> {
-    let start = std::time::Instant::now();
-    while start.elapsed() < timeout_duration {
-        if let Ok(element) = page.find_element(selector).await {
-            return Ok(element);
-        }
-        sleep(Duration::from_millis(100)).await;
+    username: Option<String>,
+    password: Option<String>
+) -> Result<(), String> {
+    if let (Some(username), Some(password)) = (username, password) {
+        let credentials = Credentials { username, password };
+        page.authenticate(credentials)
+            .await
+            .expect("Failed to authenticate the page");
     }
-
-    Err(format!(
-        "Timeout: Element with selector '{}' not found within {:?}",
-        selector, timeout_duration
-    ))
+    Ok(())
 }
