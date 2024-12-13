@@ -1,7 +1,13 @@
-use std::time::Duration;
 use std::sync::Arc;
+use std::time::Duration;
 use chromiumoxide::Page;
 use chromiumoxide::auth::Credentials;
+use chromiumoxide::cdp::browser_protocol::fetch::{
+    ContinueRequestParams, EventRequestPaused, FulfillRequestParams, HeaderEntry
+};
+use futures::StreamExt;
+
+use base64::encode;
 
 use crate::signups::setup::SignupContext;
 use crate::phone_numbers::create_sms_verifier;
@@ -19,8 +25,10 @@ pub async fn process_signup(
 ) -> Result<(), String> {
     let proxy = proxies_service::get_random_proxy(&context.proxies)?;
     let (host, port, username, password) = proxies_service::parse_proxy(&proxy)?;
+    let p = format!("{}:{}", host, port);
 
-    let (mut browser, handler_task) = launch_browser(false, &proxy).await?;
+    println!("{} | {}", proxy, p);
+    let (browser, handler_task) = launch_browser(false, &p).await?;
     let sms_verifier = create_sms_verifier(
         &context.settings.integration.sms_verifier,
         &context.settings.integration.sms_verifier_api_key,
@@ -31,24 +39,61 @@ pub async fn process_signup(
         .get_phone_number("opt19", "DE")
         .await?;
     */
+    println!("before create page");
 
     let formatted_url = format!("{}", URL);
-    let page = browser.new_page("about:blank") // about:blank
+    let page = Arc::new(browser.new_page("about:blank") // about:blank
         .await
-        .map_err(|e| e.to_string())?;
+        .expect("Failed to create page"));
+
+    println!("after create page");
+
+    let proxy_auth_value = format!(
+        "Basic {}",
+        encode(format!("{}:{}", username.clone().unwrap(), password.clone().unwrap()))
+    );
+
+    let mut request_paused = page.event_listener::<EventRequestPaused>().await.unwrap();
+    let intercept_page = page.clone();
+    let intercept_handle = tokio::spawn(async move {
+        while let Some(event) = request_paused.next().await {
+            println!("Intercepted Event: {:?}", event);
+            /*
+            let headers = vec![
+                HeaderEntry::new("Proxy-Authorization".to_string(), proxy_auth_value.clone()),
+            ];
+        println!("Adding headers: {:?}", headers);
+        */
+        let params = ContinueRequestParams::builder()
+            .request_id(event.request_id.clone())
+//            .headers(headers)
+            .build()
+            .unwrap();
+            if let Err(e) = intercept_page.execute(params).await {
+                eprintln!("Failed to continue request: {}", e);
+            }
+        }
+    });
 
     //setup_browser_stealth(&page).await?;
 
     if let (Some(username), Some(password)) = (username, password) {
         let credentials = Credentials { username, password };
+        println!("before authentication");
         page.authenticate(credentials)
             .await
             .map_err(|e| e.to_string())?;
+        println!("after authentication");
     }
 
+    println!("before goto");
     page.goto(formatted_url)
         .await
         .map_err(|e| e.to_string())?;
+    println!("after goto");
+    println!("before navigation");
+    page.wait_for_navigation().await.unwrap();
+    println!("after navigation");
 
     /*
     fill_signup_form(&page, &account.firstname, &account.lastname, &account.email).await?;
@@ -68,7 +113,11 @@ pub async fn process_signup(
         .await
         .map_err(|e| e.to_string())?;
     */
+
     handler_task
+        .await
+        .map_err(|e| e.to_string())?;
+    intercept_handle
         .await
         .map_err(|e| e.to_string())?;
 
