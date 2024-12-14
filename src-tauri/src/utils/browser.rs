@@ -104,8 +104,8 @@ pub async fn create_page(
         }
     });
 
-    authenticate_page(&page, username, password).await?;
     setup_browser_stealth(&page).await?;
+    authenticate_page(&page, username, password).await?;
 
     Ok((page, intercept_task))
 }
@@ -152,40 +152,92 @@ async fn setup_browser_stealth(page: &Page) -> Result<(), String> {
     let browser_profile = get_random_profile();
 
     let stealth_script = format!(r#"
-        // Override navigator properties
-        Object.defineProperty(navigator, 'platform', {{ get: () => '{platform}' }});
-        Object.defineProperty(navigator, 'vendor', {{ get: () => '{vendor}' }});
+        (function() {{
+            // Override navigator properties
+            Object.defineProperty(navigator, 'platform', {{ get: () => '{platform}' }});
+            Object.defineProperty(navigator, 'vendor', {{ get: () => '{vendor}' }});
+            Object.defineProperty(navigator, 'languages', {{ get: () => ['en-US', 'en'] }});
+            Object.defineProperty(navigator, 'hardwareConcurrency', {{ get: () => {hardware_concurrency} }});
 
-        // Override WebDriver
-        setTimeout(() => {{
+            // Remove webdriver property
             Object.defineProperty(navigator, 'webdriver', {{
-                get: () => undefined
+                get: () => undefined,
+                configurable: false,
+                enumerable: false
             }});
-        }}, 1000);
 
-        // Override WebGL properties
-        const getParameter = WebGLRenderingContext.prototype.getParameter;
-        WebGLRenderingContext.prototype.getParameter = function(parameter) {{
-            if (parameter === 37445) return '{vendor}'; // VENDOR
-            if (parameter === 37446) return '{webgl_renderer}'; // RENDERER
-            return getParameter(parameter);
-        }};
+            // Mock plugins and mimeTypes
+            Object.defineProperty(navigator, 'plugins', {{
+                get: () => [/* list of fake plugins */],
+                configurable: false
+            }});
+
+            Object.defineProperty(navigator, 'mimeTypes', {{
+                get: () => [/* list of fake MIME types */],
+                configurable: false
+            }});
+
+            // Spoof WebGL properties
+            const getParameter = WebGLRenderingContext.prototype.getParameter;
+            WebGLRenderingContext.prototype.getParameter = function(parameter) {{
+                if (parameter === 37445) return '{webgl_vendor}'; // VENDOR
+                if (parameter === 37446) return '{webgl_renderer}'; // RENDERER
+                return getParameter.call(this, parameter);
+            }};
+
+            // Override Function.prototype.toString
+            const originalToString = Function.prototype.toString;
+            Function.prototype.toString = function() {{
+                if (this === Function.prototype.toString) {{
+                    return 'function toString() {{ [native code] }}';
+                }}
+                return originalToString.apply(this, arguments);
+            }};
+
+            // Intercept Object.defineProperty to prevent redefining Error.prototype.stack
+            const originalDefineProperty = Object.defineProperty;
+            Object.defineProperty = function(target, prop, descriptor) {{
+                if (target instanceof Error && prop === 'stack' && typeof descriptor.get === 'function') {{
+                    // Replace the getter to prevent setting 'cdp = true'
+                    return originalDefineProperty(target, prop, {{
+                        get: function() {{
+                            // Return the original stack without modifying 'cdp'
+                            return Error.prototype.stack.call(this);
+                        }},
+                        configurable: true,
+                        enumerable: false
+                    }});
+                }}
+                return originalDefineProperty(target, prop, descriptor);
+            }};
+        }})();
     "#,
         platform = browser_profile.platform,
         vendor = browser_profile.vendor,
-        webgl_renderer = browser_profile.webgl_renderer
+        webgl_vendor = browser_profile.vendor,
+        webgl_renderer = browser_profile.webgl_renderer,
+        hardware_concurrency = browser_profile.hardware_concurrency,
     );
 
+    // Set a realistic user agent
     /*
-    page.set_user_agent(browser_profile.ua)
+    page.set_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
         .await
         .map_err(|e| e.to_string())?;
     */
+
+    // Inject the stealth script before any other scripts run
     page.evaluate_on_new_document(stealth_script)
         .await
         .map_err(|e| e.to_string())?;
+
+    // Allow some time for the script to take effect
+    sleep(Duration::from_secs(2)).await;
+
     Ok(())
 }
+
+pub const HIDE_CHROME: &str = "";
 
 async fn authenticate_page(
     page: &Page,

@@ -3,9 +3,7 @@ use std::sync::Arc;
 use crate::services::account_service::Account;
 use crate::services::proxies_service;
 use crate::signups::setup::SignupContext;
-use crate::utils::browser::{
-    launch_browser, create_page
-};
+use crate::utils::browser::{launch_browser, create_page};
 
 const URL: &str = "https://deviceandbrowserinfo.com/info_device";
 
