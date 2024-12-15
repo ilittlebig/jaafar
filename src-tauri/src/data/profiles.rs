@@ -1,6 +1,6 @@
 pub struct BrowserProfile {
     pub ua: &'static str,
-    pub vendor: &'static str,
+    pub webgl_vendor: &'static str,
     pub webgl_renderer: &'static str,
     pub platform: &'static str,
     pub language: &'static str,
@@ -12,7 +12,7 @@ pub struct BrowserProfile {
 pub static PROFILES: &[BrowserProfile] = &[
     BrowserProfile {
         ua: "abc",
-        vendor: "lol",
+        webgl_vendor: "vendor",
         webgl_renderer: "ehm",
         platform: "wtf",
         language: "en-US",

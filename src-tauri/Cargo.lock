@@ -12,6 +12,7 @@ dependencies = [
  "fake",
  "futures",
  "objc",
+ "phf 0.11.2",
  "rand 0.8.5",
  "regex",
  "reqwest 0.11.27",
