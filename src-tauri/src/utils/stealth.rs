@@ -1,3 +1,5 @@
+use rand::seq::SliceRandom;
+use rand::{thread_rng, Rng};
 use std::fmt::Write;
 use user_agent_parser::UserAgentParser;
 
@@ -6,10 +8,10 @@ use crate::data::profiles::BrowserProfile;
 use crate::data::speech_synthesis::SPEECH_SYNTHESIS_VOICES;
 
 fn is_chromium_based(browser_name: &str) -> bool {
-    false//matches!(browser_name, "Chrome" | "Google Chrome" | "Microsoft Edge")
+    true//matches!(browser_name, "Chrome" | "Google Chrome" | "Microsoft Edge")
 }
 
-/// Generates a JavaScript stealth script to spoof browser properties.
+/// Generates a JavaScript snippet to spoof browser properties.
 ///
 /// # Arguments
 /// - `browser_profile`: Contains browser details to spoof.
@@ -32,6 +34,7 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
     let plugins_script = generate_hide_plugins_script();
     let user_agent_data_script = generate_user_agent_data_string(browser_profile, browser_name, browser_version);
     let speech_synthesis_script = generate_speech_synthesis_script(browser_name);
+    let desktop_capabilities_script = generate_desktop_capabilities_script();
 
     let main_script = format!(r#"
         Object.defineProperty(navigator, 'platform', {{ get: () => '{platform}' }});
@@ -67,6 +70,7 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
         {plugins_script}
         {user_agent_data_script}
         {speech_synthesis_script}
+        {desktop_capabilities_script}
     "#);
 
     let worker_script = format!(r#"
@@ -83,9 +87,18 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
     stealth_script
 }
 
+/// Spoofs browser characteristics, such as:
+/// - platform
+/// - architecture
+/// - bitness
+/// - platform version
+///
+/// If the browser is Chromium-based, it populates these values;
+/// otherwise, it assigns "NA" for non-Chromium browsers.
 fn generate_user_agent_data_string(browser_profile: &BrowserProfile, browser_name: &str, browser_version: &str) -> String {
     let is_chromium = is_chromium_based(browser_name);
 
+    let user_agent_data_platform = browser_profile.ua_data_platform;
     let architecture = browser_profile.architecture;
     let bitness = browser_profile.bitness;
     let platform_version = browser_profile.platform_version;
@@ -97,7 +110,7 @@ fn generate_user_agent_data_string(browser_profile: &BrowserProfile, browser_nam
     };
 
     let platform = if is_chromium {
-        format!("{}", browser_profile.ua_data_platform)
+        format!("'{}'", user_agent_data_platform)
     } else {
         "undefined".to_string()
     };
@@ -109,12 +122,12 @@ fn generate_user_agent_data_string(browser_profile: &BrowserProfile, browser_nam
     };
 
     let high_entropy_values = if is_chromium {
-        r#"
+        format!(r#"
             architecture: "{architecture}",
             bitness: "{bitness}",
             model: "",
             platformVersion: "{platform_version}"
-        "#.to_string()
+        "#)
     } else {
         r#"
             architecture: "NA",
@@ -152,38 +165,46 @@ fn generate_user_agent_data_string(browser_profile: &BrowserProfile, browser_nam
 
 fn generate_brands(browser_name: &str, browser_version: &str) -> String {
     match browser_name {
-        "Chrome" | "Google Chrome" => format!(
-            r#"
+        "Chrome" | "Google Chrome" => format!(r#"
             [
                 {{ brand: "Google Chrome", version: "{browser_version}" }},
                 {{ brand: "Chromium", version: "{browser_version}" }},
                 {{ brand: "Not_A Brand", version: "24" }}
             ]
-            "#
-        ),
-        "Microsoft Edge" => format!(
-            r#"
+        "#),
+        "Microsoft Edge" => format!(r#"
             [
                 {{ brand: "Microsoft Edge", version: "{browser_version}" }},
                 {{ brand: "Chromium", version: "{browser_version}" }},
                 {{ brand: "Not_A Brand", version: "24" }}
             ]
-            "#
-        ),
+        "#),
         _ => panic!("Unsupported browser for brands generation: {}", browser_name),
     }
 }
 
+/// Generates a mock speech synthesis script with random voices.
+/// If the browser is Chromium-based, it shuffles and selects a random number of voices.
+/// Otherwise, it uses predefined voices.
 fn generate_speech_synthesis_script(browser_name: &str) -> String {
     let is_chromium = is_chromium_based(browser_name);
+    let mut rng = rand::thread_rng();
     let mut speech_synthesis = String::new();
 
-    for voice in SPEECH_SYNTHESIS_VOICES {
+    let mut shuffled_voices = SPEECH_SYNTHESIS_VOICES.to_vec();
+    shuffled_voices.shuffle(&mut rng);
+
+    let total_voices = rng.gen_range(19..=209);
+    for (i, voice) in shuffled_voices.iter().enumerate() {
+        if i >= total_voices {
+            break;
+        }
+
         let voice_uri = voice.voice_uri;
         let name = voice.name;
         let lang = voice.lang;
         let local_service = voice.local_service;
-        let default = voice.default;
+        let default = i == 0;
 
         write!(speech_synthesis, r#"
             {{
@@ -212,6 +233,79 @@ fn generate_speech_synthesis_script(browser_name: &str) -> String {
             value: {{
                 getVoices: () => [{speech_synthesis}]
             }}
+        }});
+    "#)
+}
+
+/// Generates a JavaScript snippet that mocks desktop capabilities, including
+/// media queries, color depth (24 or 30), and disabling touch support.
+fn generate_desktop_capabilities_script() -> String {
+    let mut rng = thread_rng();
+    let color_depth_options = [24, 30];
+    let color_depth = *color_depth_options.choose(&mut rng).unwrap();
+
+    format!(r#"
+        const originalMatchMedia = window.matchMedia;
+        const mediaQueryMatches = {{
+            'any-pointer: fine': true,
+            'any-pointer: any': true,
+            'any-pointer: coarse': false,
+            'pointer: fine': true,
+            'pointer: any': true,
+            'pointer: coarse': false,
+            'any-hover: hover': true,
+            'any-hover: any': true,
+            'any-hover: none': false,
+            'hover: hover': true,
+            'hover: any': true,
+            'hover: none': false
+        }};
+
+        const parseMediaQuery = query => {{
+            query = query.trim();
+
+            const conditions = query.match(/\([^)]+\)/g);
+            if (!conditions) {{
+                return originalMatchMedia.call(window, query).matches;
+            }}
+
+            for (let condition of conditions) {{
+                condition = condition.slice(1, -1).trim();
+                if (condition in mediaQueryMatches) {{
+                    if (!mediaQueryMatches[condition]) {{
+                        return false;
+                    }}
+                }} else {{
+                    return originalMatchMedia.call(window, query).matches;
+                }}
+            }}
+
+            return true;
+        }}
+
+        window.matchMedia = function(query) {{
+            const matches = parseMediaQuery(query);
+            return {{
+                matches: matches,
+                media: query,
+                onchange: null,
+                addListener: function() {{}},
+                removeListener: function() {{}},
+                addEventListener: function() {{}},
+                removeEventListener: function() {{}},
+                dispatchEvent: function() {{ return false; }}
+            }};
+        }};
+
+        Object.defineProperty(screen, 'colorDepth', {{
+            get: function() {{ return {color_depth}; }},
+            configurable: false
+        }});
+
+        Object.defineProperty(navigator, 'maxTouchPoints', {{
+            value: 0,
+            writable: false,
+            configurable: false
         }});
     "#)
 }
