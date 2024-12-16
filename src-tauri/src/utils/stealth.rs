@@ -36,6 +36,7 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
     let desktop_capabilities_script = generate_desktop_capabilities_script();
     let audio_fingerprint_script = generate_audio_fingerprint_script();
     let hardware_concurrency_and_memory_script = generate_hardware_concurrency_and_memory_script(browser_name);
+    let screen_resolution_script = generate_screen_resolution_script();
 
     let main_script = format!(r#"
         Object.defineProperty(navigator, 'platform', {{ get: () => '{platform}' }});
@@ -73,6 +74,7 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
         {desktop_capabilities_script}
         {audio_fingerprint_script}
         {hardware_concurrency_and_memory_script}
+        {screen_resolution_script}
     "#);
 
     let worker_script = format!(r#"
@@ -420,6 +422,38 @@ fn generate_hardware_concurrency_and_memory_script(browser_name: &str) -> String
         }});
         Object.defineProperty(navigator, 'deviceMemory', {{
             get: () => {device_memory}
+        }});
+    "#)
+}
+
+fn generate_screen_resolution_script() -> String {
+    let mut rng = thread_rng();
+    let screen_sizes = [
+        (1920, 1080), // Full HD
+        (1366, 768),  // Standard Laptop
+        (1440, 900),  // 16:10 Laptop
+        (1600, 900),  // Wide HD
+        (1280, 800),  // Smaller Laptop
+        (2560, 1440), // QHD
+        (3840, 2160), // 4K UHD
+    ];
+
+    let (width, height) = *screen_sizes.choose(&mut rng).unwrap();
+    let avail_width = width;
+    let avail_height = height - rng.gen_range(0..50);
+
+    format!(r#"
+        Object.defineProperty(screen, 'width', {{
+            get: () => {width}
+        }});
+        Object.defineProperty(screen, 'height', {{
+            get: () => {height}
+        }});
+        Object.defineProperty(screen, 'availWidth', {{
+            get: () => {avail_width}
+        }});
+        Object.defineProperty(screen, 'availHeight', {{
+            get: () => {avail_height}
         }});
     "#)
 }
