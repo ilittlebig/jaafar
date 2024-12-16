@@ -8,7 +8,7 @@ use crate::data::profiles::BrowserProfile;
 use crate::data::speech_synthesis::SPEECH_SYNTHESIS_VOICES;
 
 fn is_chromium_based(browser_name: &str) -> bool {
-    false//matches!(browser_name, "Chrome" | "Google Chrome" | "Microsoft Edge")
+    true//matches!(browser_name, "Chrome" | "Google Chrome" | "Microsoft Edge")
 }
 
 /// Generates a JavaScript snippet to spoof browser properties.
@@ -29,18 +29,17 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
     let platform = browser_profile.platform;
     let webgl_vendor = browser_profile.webgl_vendor;
     let webgl_renderer = browser_profile.webgl_renderer;
-    let hardware_concurrency = browser_profile.hardware_concurrency;
 
     let plugins_script = generate_hide_plugins_script();
     let user_agent_data_script = generate_user_agent_data_string(browser_profile, browser_name, browser_version);
     let speech_synthesis_script = generate_speech_synthesis_script(browser_name);
     let desktop_capabilities_script = generate_desktop_capabilities_script();
     let audio_fingerprint_script = generate_audio_fingerprint_script();
+    let hardware_concurrency_and_memory_script = generate_hardware_concurrency_and_memory_script(browser_name);
 
     let main_script = format!(r#"
         Object.defineProperty(navigator, 'platform', {{ get: () => '{platform}' }});
         Object.defineProperty(navigator, 'vendor', {{ get: () => '{webgl_vendor}' }});
-        Object.defineProperty(navigator, 'hardwareConcurrency', {{ get: () => {hardware_concurrency} }});
         Object.defineProperty(navigator, 'languages', {{ get: () => ['en-US', 'en'] }});
 
         Object.defineProperty(navigator, 'webdriver', {{
@@ -73,6 +72,7 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
         {speech_synthesis_script}
         {desktop_capabilities_script}
         {audio_fingerprint_script}
+        {hardware_concurrency_and_memory_script}
     "#);
 
     let worker_script = format!(r#"
@@ -311,7 +311,7 @@ fn generate_desktop_capabilities_script() -> String {
 ///
 ///
 fn generate_audio_fingerprint_script() -> String {
-    let mut rng = rand::thread_rng();
+    let mut rng = thread_rng();
 
     let base_latency = rng.gen_range(0.004..0.008);
     let sample_rate = *[44100, 48000, 32000, 22050, 16000].choose(&mut rng).unwrap();
@@ -394,5 +394,32 @@ fn generate_audio_fingerprint_script() -> String {
         }};
 
         Object.freeze(spoofedValues);
+    "#)
+}
+
+fn generate_hardware_concurrency_and_memory_script(browser_name: &str) -> String {
+    let is_chromium = is_chromium_based(browser_name);
+
+    let mut rng = thread_rng();
+    let hardware_concurrency = *[2, 4, 6, 8, 10, 12, 16]
+        .choose(&mut rng)
+        .expect("No hardware concurrency values available");
+    let device_memory = *[2, 4, 8]
+        .choose(&mut rng)
+        .expect("No device memory values available");
+
+    let device_memory = if is_chromium {
+        device_memory.to_string()
+    } else {
+        "undefined".to_string()
+    };
+
+    format!(r#"
+        Object.defineProperty(navigator, 'hardwareConcurrency', {{
+            get: () => {hardware_concurrency}
+        }});
+        Object.defineProperty(navigator, 'deviceMemory', {{
+            get: () => {device_memory}
+        }});
     "#)
 }
