@@ -315,9 +315,9 @@ fn generate_audio_fingerprint_script() -> String {
 
     let base_latency = rng.gen_range(0.004..0.008);
     let sample_rate = *[44100, 48000, 32000, 22050, 16000].choose(&mut rng).unwrap();
+    let smoothing_time_constant = *[0.7, 0.8, 0.8, 0.9].choose(&mut rng).unwrap();
     let fft_size = *[1024, 2048, 4096].choose(&mut rng).unwrap();
     let frequency_bin_count = fft_size / 2;
-    let smoothing_time_constant = rng.gen_range(0.7..0.9);
 
     let desired_pxi_output = rng.gen_range(100.0..150.0);
     let spoofed_sample_value = desired_pxi_output / 500.0;
