@@ -8,7 +8,7 @@ use crate::data::profiles::BrowserProfile;
 use crate::data::speech_synthesis::SPEECH_SYNTHESIS_VOICES;
 
 fn is_chromium_based(browser_name: &str) -> bool {
-    true//matches!(browser_name, "Chrome" | "Google Chrome" | "Microsoft Edge")
+    false//matches!(browser_name, "Chrome" | "Google Chrome" | "Microsoft Edge")
 }
 
 /// Generates a JavaScript snippet to spoof browser properties.
@@ -35,6 +35,7 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
     let user_agent_data_script = generate_user_agent_data_string(browser_profile, browser_name, browser_version);
     let speech_synthesis_script = generate_speech_synthesis_script(browser_name);
     let desktop_capabilities_script = generate_desktop_capabilities_script();
+    let audio_fingerprint_script = generate_audio_fingerprint_script();
 
     let main_script = format!(r#"
         Object.defineProperty(navigator, 'platform', {{ get: () => '{platform}' }});
@@ -71,6 +72,7 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
         {user_agent_data_script}
         {speech_synthesis_script}
         {desktop_capabilities_script}
+        {audio_fingerprint_script}
     "#);
 
     let worker_script = format!(r#"
@@ -94,7 +96,7 @@ pub fn build_stealth_script(browser_profile: &BrowserProfile) -> String {
 /// - platform version
 ///
 /// If the browser is Chromium-based, it populates these values;
-/// otherwise, it assigns "NA" for non-Chromium browsers.
+/// otherwise, it assigns undefined for non-Chromium browsers.
 fn generate_user_agent_data_string(browser_profile: &BrowserProfile, browser_name: &str, browser_version: &str) -> String {
     let is_chromium = is_chromium_based(browser_name);
 
@@ -121,46 +123,41 @@ fn generate_user_agent_data_string(browser_profile: &BrowserProfile, browser_nam
         "undefined".to_string()
     };
 
-    let high_entropy_values = if is_chromium {
+    if is_chromium {
         format!(r#"
-            architecture: "{architecture}",
-            bitness: "{bitness}",
-            model: "",
-            platformVersion: "{platform_version}"
+            Object.defineProperty(navigator, 'userAgentData', {{
+                get: () => ({{
+                    brands: {brands},
+                    platform: {platform},
+                    mobile: {is_mobile},
+                    getHighEntropyValues: keys => {{
+                        return new Promise(resolve => {{
+                            const highEntropyValues = {{
+                                architecture: "{architecture}",
+                                bitness: "{bitness}",
+                                model: "",
+                                platformVersion: "{platform_version}"
+                            }};
+
+                            const result = keys.reduce((obj, key) => {{
+                                if (highEntropyValues[key] !== undefined) {{
+                                    obj[key] = highEntropyValues[key];
+                                }}
+                                return obj;
+                            }}, {{}});
+                            resolve(result);
+                        }});
+                    }}
+                }})
+            }});
         "#)
     } else {
         r#"
-            architecture: "NA",
-            bitness: "NA",
-            model: "NA",
-            platformVersion: "NA"
+            Object.defineProperty(navigator, 'userAgentData', {
+                get: () => undefined
+            });
         "#.to_string()
-    };
-
-    format!(r#"
-        Object.defineProperty(navigator, 'userAgentData', {{
-            get: () => ({{
-                brands: {brands},
-                platform: {platform},
-                mobile: {is_mobile},
-                getHighEntropyValues: keys => {{
-                    return new Promise(resolve => {{
-                        const highEntropyValues = {{
-                            {high_entropy_values}
-                        }};
-
-                        const result = keys.reduce((obj, key) => {{
-                            if (highEntropyValues[key] !== undefined) {{
-                                obj[key] = highEntropyValues[key];
-                            }}
-                            return obj;
-                        }}, {{}});
-                        resolve(result);
-                    }});
-                }}
-            }})
-        }});
-    "#)
+    }
 }
 
 fn generate_brands(browser_name: &str, browser_version: &str) -> String {
@@ -307,5 +304,95 @@ fn generate_desktop_capabilities_script() -> String {
             writable: false,
             configurable: false
         }});
+    "#)
+}
+
+///
+///
+///
+fn generate_audio_fingerprint_script() -> String {
+    let mut rng = rand::thread_rng();
+
+    let base_latency = rng.gen_range(0.004..0.008);
+    let sample_rate = *[44100, 48000, 32000, 22050, 16000].choose(&mut rng).unwrap();
+    let fft_size = *[1024, 2048, 4096].choose(&mut rng).unwrap();
+    let frequency_bin_count = fft_size / 2;
+    let smoothing_time_constant = rng.gen_range(0.7..0.9);
+
+    let desired_pxi_output = rng.gen_range(100.0..150.0);
+    let spoofed_sample_value = desired_pxi_output / 500.0;
+
+    format!(r#"
+        const spoofedValues = {{
+            baseLatency: {base_latency},
+            outputLatency: 0,
+            sampleRate: {sample_rate},
+            fftSize: {fft_size},
+            frequencyBinCount: {frequency_bin_count},
+            minDecibels: -100.0,
+            maxDecibels: -30.0,
+            smoothingTimeConstant: {smoothing_time_constant}
+        }};
+
+        const defineSpoofedProperty = (target, property, value) => {{
+            Object.defineProperty(target, property, {{
+                get: () => value,
+                set: () => {{}},
+                configurable: false,
+                enumerable: true
+            }});
+        }}
+
+        const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
+        window.AudioContext = new Proxy(OriginalAudioContext, {{
+            construct(target, args) {{
+                const instance = new target(...args);
+                defineSpoofedProperty(instance, 'baseLatency', spoofedValues.baseLatency);
+                defineSpoofedProperty(instance, 'outputLatency', spoofedValues.outputLatency);
+                defineSpoofedProperty(instance, 'sampleRate', spoofedValues.sampleRate);
+                return instance;
+            }}
+        }});
+
+        const OriginalOfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        window.OfflineAudioContext = new Proxy(OriginalOfflineAudioContext, {{
+            construct(target, args) {{
+                const instance = new target(...args);
+                const originalCreateAnalyser = instance.createAnalyser.bind(instance);
+
+                instance.createAnalyser = function() {{
+                    const analyser = originalCreateAnalyser();
+                    defineSpoofedProperty(analyser, 'fftSize', spoofedValues.fftSize);
+                    defineSpoofedProperty(analyser, 'frequencyBinCount', spoofedValues.frequencyBinCount);
+                    defineSpoofedProperty(analyser, 'minDecibels', spoofedValues.minDecibels);
+                    defineSpoofedProperty(analyser, 'maxDecibels', spoofedValues.maxDecibels);
+                    defineSpoofedProperty(analyser, 'smoothingTimeConstant', spoofedValues.smoothingTimeConstant);
+                    return analyser;
+                }};
+                return instance;
+            }}
+        }});
+
+        window.webkitAudioContext = window.AudioContext;
+        window.webkitOfflineAudioContext = window.OfflineAudioContext;
+
+        if (window.AnalyserNode) {{
+            defineSpoofedProperty(AnalyserNode.prototype, 'fftSize', spoofedValues.fftSize);
+            defineSpoofedProperty(AnalyserNode.prototype, 'frequencyBinCount', spoofedValues.frequencyBinCount);
+            defineSpoofedProperty(AnalyserNode.prototype, 'minDecibels', spoofedValues.minDecibels);
+            defineSpoofedProperty(AnalyserNode.prototype, 'maxDecibels', spoofedValues.maxDecibels);
+            defineSpoofedProperty(AnalyserNode.prototype, 'smoothingTimeConstant', spoofedValues.smoothingTimeConstant);
+        }}
+
+        const OriginalGetChannelData = AudioBuffer.prototype.getChannelData;
+        AudioBuffer.prototype.getChannelData = function(channel) {{
+            const data = OriginalGetChannelData.call(this, channel);
+            for (let i = 4500; i < 5000 && i < data.length; i++) {{
+                data[i] = {spoofed_sample_value};
+            }}
+            return data;
+        }};
+
+        Object.freeze(spoofedValues);
     "#)
 }
