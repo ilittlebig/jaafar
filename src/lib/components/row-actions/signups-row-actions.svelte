@@ -10,8 +10,7 @@
 	let { signup }: { signup: Signup } = $props();
 
 	const handleDeleteConfirm = async () => {
-		console.log("delete signup:", signup);
-//		await deleteSignup(signup.name);
+		await deleteSignup(signup.id);
 		deleteDialog.open = false;
 	}
 
