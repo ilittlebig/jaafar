@@ -1,5 +1,7 @@
 use user_agent_parser::UserAgentParser;
 
+#[macro_use]
+mod macros;
 mod plugins;
 mod user_agent;
 mod speech_synthesis;

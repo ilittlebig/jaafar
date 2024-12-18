@@ -44,12 +44,7 @@ pub fn generate_speech_synthesis_script(browser_name: &str) -> String {
         { voiceURI: "Aaron", name: "Aaron", lang: "en-US", localService: true, default: false },
     "#;
 
-    let speech_synthesis = if is_chromium {
-        speech_synthesis
-    } else {
-        non_chromium_voices.to_string()
-    };
-
+    let speech_synthesis = choose_string!(is_chromium, speech_synthesis, non_chromium_voices);
     format!(r#"
         Object.defineProperty(window, 'speechSynthesis', {{
             value: {{

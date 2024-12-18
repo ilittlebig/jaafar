@@ -14,12 +14,7 @@ pub fn generate_hardware_concurrency_and_memory_script(browser_name: &str) -> St
         .choose(&mut rng)
         .expect("No device memory values available");
 
-    let device_memory = if is_chromium {
-        device_memory.to_string()
-    } else {
-        "undefined".to_string()
-    };
-
+    let device_memory = value_or_undefined!(is_chromium, device_memory);
     format!(r#"
         Object.defineProperty(navigator, 'hardwareConcurrency', {{
             get: () => {hardware_concurrency}

@@ -9,7 +9,11 @@ use crate::data::profiles::BrowserProfile;
 ///
 /// If the browser is Chromium-based, it populates these values;
 /// otherwise, it assigns undefined for non-Chromium browsers.
-pub fn generate_user_agent_data_script(browser_profile: &BrowserProfile, browser_name: &str, browser_version: &str) -> String {
+pub fn generate_user_agent_data_script(
+    browser_profile: &BrowserProfile,
+    browser_name: &str,
+    browser_version: &str
+) -> String {
     let is_chromium = is_chromium_based(browser_name);
 
     let user_agent_data_platform = browser_profile.ua_data_platform;
@@ -17,23 +21,9 @@ pub fn generate_user_agent_data_script(browser_profile: &BrowserProfile, browser
     let bitness = browser_profile.bitness;
     let platform_version = browser_profile.platform_version;
 
-    let brands = if is_chromium {
-        generate_brands(browser_name, browser_version)
-    } else {
-        "undefined".to_string()
-    };
-
-    let platform = if is_chromium {
-        format!("'{}'", user_agent_data_platform)
-    } else {
-        "undefined".to_string()
-    };
-
-    let is_mobile = if is_chromium {
-        "false".to_string()
-    } else {
-        "undefined".to_string()
-    };
+    let brands = value_or_undefined!(is_chromium, generate_brands(browser_name, browser_version));
+    let platform = value_or_undefined!(is_chromium, format!("'{}'", user_agent_data_platform));
+    let is_mobile = value_or_undefined!(is_chromium, "false");
 
     if is_chromium {
         format!(r#"
