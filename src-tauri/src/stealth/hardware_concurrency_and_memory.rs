@@ -3,6 +3,10 @@ use rand::prelude::SliceRandom;
 
 use crate::utils::browser::is_chromium_based;
 
+/// Generates a JavaScript snippet to spoof the hardware concurrency and memory values.
+///
+/// # Returns
+/// A String with JavaScript snippet to spoof the hardware concurrency and memory values.
 pub fn generate_hardware_concurrency_and_memory_script(browser_name: &str) -> String {
     let is_chromium = is_chromium_based(browser_name);
 

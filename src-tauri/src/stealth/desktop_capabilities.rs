@@ -3,6 +3,9 @@ use rand::prelude::SliceRandom;
 
 /// Generates a JavaScript snippet that mocks desktop capabilities, including
 /// media queries, color depth (24 or 30), and disabling touch support.
+///
+/// # Returns
+/// A String with JavaScript snippet to spoof the desktop capabilities values.
 pub fn generate_desktop_capabilities_script() -> String {
     let mut rng = thread_rng();
     let color_depth_options = [24, 30];

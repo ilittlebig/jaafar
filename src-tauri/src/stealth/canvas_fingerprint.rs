@@ -1,3 +1,7 @@
+/// Generates a JavaScript snippet to spoof the canvas fingerprint.
+///
+/// # Returns
+/// A String with JavaScript snippet to spoof the canvas fingerprint.
 pub fn generate_canvas_fingerprint_script() -> String {
     r#"
         const originalToBlob = HTMLCanvasElement.prototype.toBlob;

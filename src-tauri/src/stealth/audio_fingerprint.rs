@@ -1,6 +1,10 @@
 use rand::{Rng, thread_rng};
 use rand::prelude::SliceRandom;
 
+/// Generates a JavaScript snippet to spoof the audio fingerprint.
+///
+/// # Returns
+/// A JavaScript snippet to spoof the audio fingerprint object.
 pub fn generate_audio_fingerprint_script() -> String {
     let mut rng = thread_rng();
 

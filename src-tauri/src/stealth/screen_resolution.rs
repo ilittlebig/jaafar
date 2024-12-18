@@ -1,6 +1,10 @@
 use rand::thread_rng;
 use rand::prelude::SliceRandom;
 
+/// Generates a JavaScript snippet to spoof screen resolution values.
+///
+/// # Returns
+/// A String with JavaScript snippet to spoof screen resolution values.
 pub fn generate_screen_resolution_script() -> String {
     let mut rng = thread_rng();
     let screen_sizes = [

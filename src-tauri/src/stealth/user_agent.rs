@@ -9,6 +9,14 @@ use crate::data::profiles::BrowserProfile;
 ///
 /// If the browser is Chromium-based, it populates these values;
 /// otherwise, it assigns undefined for non-Chromium browsers.
+///
+/// # Arguments
+/// - browser_profile: Contains browser-specific properties to spoof.
+/// - browser_name: Name of the browser.
+/// - browser_version: Version of the browser.
+///
+/// # Returns
+/// A JavaScript snippet to spoof the userAgentData object based on the browser type.
 pub fn generate_user_agent_data_script(
     browser_profile: &BrowserProfile,
     browser_name: &str,

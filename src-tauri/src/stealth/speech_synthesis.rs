@@ -6,8 +6,15 @@ use crate::utils::browser::is_chromium_based;
 use crate::data::speech_synthesis::SPEECH_SYNTHESIS_VOICES;
 
 /// Generates a mock speech synthesis script with random voices.
+///
 /// If the browser is Chromium-based, it shuffles and selects a random number of voices.
 /// Otherwise, it uses predefined voices.
+///
+/// # Arguments
+/// - browser_name: Name of the browser.
+///
+/// # Returns
+/// A String with a JavaScript snippet to spoof the speechSynthesis object based on the browser type.
 pub fn generate_speech_synthesis_script(browser_name: &str) -> String {
     let is_chromium = is_chromium_based(browser_name);
     let mut rng = rand::thread_rng();
