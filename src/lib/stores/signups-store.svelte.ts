@@ -9,6 +9,7 @@ export type SignupStatus = "not_started" | "running" | "completed";
 export type SignupMode = "auto_confirm" | "manual_confirm";
 
 export interface Signup {
+	id: string;
 	status: SignupStatus;
 	product: string;
 	proxyGroup: string;
