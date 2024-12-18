@@ -5,6 +5,8 @@
 	import { DataTable } from "$lib/components/data-table";
 	import NewSignupDialog, { newSignupDialog } from "$lib/components/dialogs/new-signup-dialog.svelte";
 	import { columns } from "./columns";
+
+	$inspect(signupsStore.signups);
 </script>
 
 <div class="flex flex-col gap-y-2 w-full">

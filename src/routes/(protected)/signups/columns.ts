@@ -12,42 +12,48 @@ import { renderSnippet, renderComponent } from "$lib/components/ui/data-table";
 import SignupsRowActions from "$lib/components/row-actions/signups-row-actions.svelte";
 import { DataTable } from "$lib/components/data-table";
 
+const formatWord = (word: string): string => {
+  return word
+		.replace(/[-_]/g, " ")
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
 export const columns: ColumnDef<Signup>[] = [
-  {
+	{
 		id: "status",
-    accessorFn: (row: Signup) => row.status,
-    header: "Status",
+		accessorFn: (row: Signup) => formatWord(row.status),
+		header: "Status",
 		cell: ({ row }) => {
 			const value: string = row.getValue("status");
-      return renderComponent(DataTable.BadgeCell, {
+			return renderComponent(DataTable.BadgeCell, {
 				value,
 				variant: "outline"
 			});
-    },
-  },
-  {
+		},
+	},
+	{
 		id: "mode",
-    accessorFn: (row: Signup) => row.mode,
-    header: "Mode",
+		accessorFn: (row: Signup) => formatWord(row.mode),
+		header: "Mode",
 		cell: ({ row }) => {
 			const value: string = row.getValue("mode");
-      return renderComponent(DataTable.BadgeCell, {
+			return renderComponent(DataTable.BadgeCell, {
 				value,
 				variant: "default"
 			});
-    },
-  },
-  {
-    accessorFn: (row: Signup) => row.product,
-    header: "Product",
-  },
-  {
-    accessorFn: (row: Signup) => row.proxyGroup,
-    header: "Proxy Group",
-  },
-  {
+		},
+	},
+	{
+		accessorFn: (row: Signup) => formatWord(row.product),
+		header: "Product",
+	},
+	{
+		accessorFn: (row: Signup) => row.proxyGroup,
+		header: "Proxy Group",
+	},
+	{
 		id: "actions",
-    header: "",
+		header: "",
 		cell: ({ row }) => {
 			const rowActionsCellSnippet = createRawSnippet<[Signup]>(getOriginal => {
 				const signup = getOriginal();
@@ -62,7 +68,7 @@ export const columns: ColumnDef<Signup>[] = [
 					}
 				};
 			});
-      return renderSnippet(rowActionsCellSnippet, row.original);
-    },
-  },
+			return renderSnippet(rowActionsCellSnippet, row.original);
+		},
+	},
 ];
