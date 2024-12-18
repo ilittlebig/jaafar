@@ -12,8 +12,76 @@ use chromiumoxide::cdp::browser_protocol::fetch::{
     ContinueRequestParams, EventRequestPaused
 };
 
+use crate::stealth::build_stealth_script;
 use crate::utils::profiles::get_random_profile;
-use crate::utils::stealth::build_stealth_script;
+
+static CHROME_ARGS: [&'static str; 58] = [
+    "--no-sandbox",
+    "--no-first-run",
+    "--hide-scrollbars",
+    // "--allow-pre-commit-input",
+    // "--user-data-dir=~/.config/google-chrome",
+    "--allow-running-insecure-content",
+    "--autoplay-policy=user-gesture-required",
+    "--ignore-certificate-errors",
+    "--no-default-browser-check",
+    "--no-zygote",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage", // required or else docker containers may crash not enough memory
+    "--disable-threaded-scrolling",
+    "--disable-demo-mode",
+    "--disable-dinosaur-easter-egg",
+    "--disable-fetching-hints-at-navigation-start",
+    "--disable-site-isolation-trials",
+    "--disable-web-security",
+    "--disable-threaded-animation",
+    "--disable-sync",
+    "--disable-print-preview",
+    "--disable-partial-raster",
+    "--disable-in-process-stack-traces",
+    "--disable-v8-idle-tasks",
+    "--disable-low-res-tiling",
+    "--disable-speech-api",
+    "--disable-smooth-scrolling",
+    "--disable-default-apps",
+    "--disable-prompt-on-repost",
+    "--disable-domain-reliability",
+    "--disable-component-update",
+    "--disable-background-timer-throttling",
+    "--disable-breakpad",
+    "--disable-software-rasterizer",
+    "--disable-extensions",
+    "--disable-popup-blocking",
+    "--disable-hang-monitor",
+    "--disable-image-animation-resync",
+    "--disable-client-side-phishing-detection",
+    "--disable-component-extensions-with-background-pages",
+    "--disable-ipc-flooding-protection",
+    "--disable-background-networking",
+    "--disable-renderer-backgrounding",
+    "--disable-field-trial-config",
+    "--disable-back-forward-cache",
+    "--disable-backgrounding-occluded-windows",
+    "--force-fieldtrials=*BackgroundTracing/default/",
+    // "--enable-automation",
+    "--log-level=3",
+    "--enable-logging=stderr",
+    "--enable-features=SharedArrayBuffer,NetworkService,NetworkServiceInProcess",
+    "--metrics-recording-only",
+    "--use-mock-keychain",
+    "--force-color-profile=srgb",
+    "--mute-audio",
+    "--no-service-autorun",
+    "--password-store=basic",
+    "--export-tagged-pdf",
+    "--no-pings",
+    "--use-gl=swiftshader",
+    "--disable-features=InterestFeedContentSuggestions,PrivacySandboxSettings4,AutofillServerCommunication,CalculateNativeWinOcclusion,OptimizationHints,AudioServiceOutOfProcess,IsolateOrigins,site-per-process,ImprovedCookieControls,LazyFrameLoading,GlobalMediaControls,DestroyProfileOnBrowserClose,MediaRouter,DialMediaRouteProvider,AcceptCHFrame,AutoExpandDetailsElement,CertificateTransparencyComponentUpdater,AvoidUnnecessaryBeforeUnloadCheckSync,Translate"
+];
+
+pub fn is_chromium_based(browser_name: &str) -> bool {
+    matches!(browser_name, "Chrome" | "Google Chrome" | "Microsoft Edge")
+}
 
 /// Launches a browser instance and spawns a handler task for WebSocket communication.
 ///
@@ -36,16 +104,12 @@ pub async fn launch_browser(
         BrowserConfig::builder().with_head()
     };
 
+    let mut chrome_args = Vec::from(CHROME_ARGS.map(|e| e.replace("://", "=").to_string()));
     browser_config_builder = browser_config_builder
-        .arg(format!("--proxy-server={}", proxy))
-        .arg("--disable-blink-features=AutomationControlled")
-        .arg("--disable-software-rasterizer")
-        .arg("--disable-dev-shm-usage")
-        .arg("--disable-extensions")
-        .arg("--disable-default-apps")
+        .disable_default_args()
         .enable_request_intercept()
-        .disable_cache()
-        .no_sandbox();
+        .args(chrome_args)
+        .arg(format!("--proxy-server={}", proxy));
 
     let browser_config = browser_config_builder
         .build()

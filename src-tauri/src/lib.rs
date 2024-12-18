@@ -9,10 +9,10 @@ extern crate objc;
 mod plugins;
 mod signups;
 mod services;
-mod captcha_solvers;
-mod phone_numbers;
 mod utils;
 mod data;
+mod stealth;
+mod integrated_services;
 
 use plugins::tauri_traffic_light_positioner_plugin;
 

@@ -5,7 +5,7 @@ use crate::services::proxies_service;
 use crate::signups::setup::SignupContext;
 use crate::utils::browser::{launch_browser, create_page};
 
-const URL: &str = "https://deviceandbrowserinfo.com/info_device";
+const URL: &str = "https://amiunique.org/fingerprint";
 
 pub async fn process_signup(
     id: &str,

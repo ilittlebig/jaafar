@@ -53,14 +53,12 @@ pub fn setup_signup_context(
 /// # Arguments
 /// - `context`: Shared `SignupContext`.
 /// - `process_account`: Function that processes a single account.
-/// - `semaphore_limit`: Maximum number of concurrent tasks.
 ///
 /// # Returns
 /// A `Result` with `()` on success or an error message on failure.
 pub fn run_signup<F>(
     context: Arc<SignupContext>,
     process_account: F,
-    semaphore_limit: usize,
 ) -> Result<(), String>
 where
     F: Fn(Arc<Account>, Arc<SignupContext>) -> Pin<Box<dyn Future<Output = Result<(), String>> + Send>>
@@ -69,7 +67,8 @@ where
         + 'static
         + Clone,
 {
-    let semaphore = Arc::new(Semaphore::new(semaphore_limit));
+    let entry_limit = context.settings.integration.entry_limit;
+    let semaphore = Arc::new(Semaphore::new(entry_limit));
     let accounts = context.accounts.clone();
 
     for mut account in accounts.into_iter().map(Arc::new) {
