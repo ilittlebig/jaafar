@@ -15,13 +15,16 @@
 			<Button
 				variant="ghost"
 				size="icon"
-				class="rounded-lg z-20"
+				class="rounded-lg z-20 relative"
 				aria-label="Notifications"
 				{...props}
 			>
 				<Tooltip.Provider>
 					<Tooltip.Root>
 						<Tooltip.Trigger>
+							<div class="flex items-center justify-center bg-primary rounded-full w-4 h-4 absolute top-1 right-1">
+								<p class="text-[10px] text-primary-foreground">7</p>
+							</div>
 							<i class={cn(open ? "fa-solid" : "fa-regular", "fa-bell text-lg")}></i>
 						</Tooltip.Trigger>
 						<Tooltip.Content>Notifications</Tooltip.Content>
