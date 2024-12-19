@@ -1,50 +1,25 @@
 <script lang="ts">
-	import * as Card from "$lib/components/ui/card";
+	import { Button } from "$lib/components/ui/button";
+	import * as Tabs from "$lib/components/ui/tabs";
+	import OverviewPage from "$lib/components/dashboard/overview-page.svelte";
 </script>
 
-<div class="flex items-center">
+<div class="flex items-center justify-between">
   <h1 class="font-semibold text-2xl">Dashboard</h1>
+	<Button>
+		<i class="fa-regular fa-download"></i>
+		Download
+	</Button>
 </div>
 
-<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-	<Card.Root>
-		<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2" >
-			<Card.Title class="text-sm font-medium">Total Revenue</Card.Title>
-			<i class="fa-regular fa-dollar-sign text-muted-foreground text-sm"></i>
-		</Card.Header>
-		<Card.Content>
-			<div class="text-2xl font-bold">$45,231.89</div>
-			<p class="text-muted-foreground text-xs">+20.1% from last month</p>
-		</Card.Content>
-	</Card.Root>
-	<Card.Root>
-		<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2" >
-			<Card.Title class="text-sm font-medium">Total Revenue</Card.Title>
-			<i class="fa-regular fa-dollar-sign text-muted-foreground text-sm"></i>
-		</Card.Header>
-		<Card.Content>
-			<div class="text-2xl font-bold">$45,231.89</div>
-			<p class="text-muted-foreground text-xs">+20.1% from last month</p>
-		</Card.Content>
-	</Card.Root>
-	<Card.Root>
-		<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2" >
-			<Card.Title class="text-sm font-medium">Total Revenue</Card.Title>
-			<i class="fa-regular fa-dollar-sign text-muted-foreground text-sm"></i>
-		</Card.Header>
-		<Card.Content>
-			<div class="text-2xl font-bold">$45,231.89</div>
-			<p class="text-muted-foreground text-xs">+20.1% from last month</p>
-		</Card.Content>
-	</Card.Root>
-	<Card.Root>
-		<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2" >
-			<Card.Title class="text-sm font-medium">Total Revenue</Card.Title>
-			<i class="fa-regular fa-dollar-sign text-muted-foreground text-sm"></i>
-		</Card.Header>
-		<Card.Content>
-			<div class="text-2xl font-bold">$45,231.89</div>
-			<p class="text-muted-foreground text-xs">+20.1% from last month</p>
-		</Card.Content>
-	</Card.Root>
-</div>
+<Tabs.Root value="overview" class="space-y-4">
+	<Tabs.List>
+		<Tabs.Trigger value="overview">Overview</Tabs.Trigger>
+		<Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
+		<Tabs.Trigger value="reports">Reports</Tabs.Trigger>
+		<Tabs.Trigger value="notifications">Notifications</Tabs.Trigger>
+	</Tabs.List>
+	<Tabs.Content value="overview" class="space-y-4">
+		<OverviewPage />
+	</Tabs.Content>
+</Tabs.Root>
