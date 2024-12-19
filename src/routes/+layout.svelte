@@ -12,6 +12,9 @@
 		await loadSettings();
 		await checkForUpdates();
 		updateInterval = setInterval(checkForUpdates, 12 * 60 * 60 * 1000);
+
+		// Disables the context menu
+		document.addEventListener("contextmenu", event => event.preventDefault());
 	});
 
 	onDestroy(() => {
