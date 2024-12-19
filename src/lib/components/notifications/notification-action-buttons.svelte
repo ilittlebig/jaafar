@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { cn } from "$lib/utils";
 	import * as Tooltip from "$lib/components/ui/tooltip";
+	let { isRead }: { isRead: boolean } = $props();
 </script>
 
 <div class="flex gap-x-2">
@@ -7,11 +9,15 @@
 		<Tooltip.Root>
 			<Tooltip.Trigger>
 				<button aria-label="Mark as read" class="text-xs text-muted-foreground hover:text-foreground">
-					<i class="fa-regular fa-eye"></i>
+					<i class={cn("fa-regular", isRead ? "fa-eye-slash" : "fa-eye")}></i>
 				</button>
 			</Tooltip.Trigger>
 			<Tooltip.Content side="bottom" align="end">
-				Mark as read
+				{#if isRead}
+					Mark as unread
+				{:else}
+					Mark as read
+				{/if}
 			</Tooltip.Content>
 		</Tooltip.Root>
 		<Tooltip.Root>

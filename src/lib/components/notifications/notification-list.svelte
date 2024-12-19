@@ -7,11 +7,11 @@
 <div class="-mx-4">
 	<Separator />
 </div>
-<NotificationRow />
+<NotificationRow isRead />
 <div class="-mx-4">
 	<Separator />
 </div>
-<NotificationRow />
+<NotificationRow isRead />
 <div class="-mx-4">
 	<Separator />
 </div>
