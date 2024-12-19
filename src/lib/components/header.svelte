@@ -3,6 +3,7 @@
 	import { Button } from "$lib/components/ui/button";
 	import { Separator } from "$lib/components/ui/separator";
   import * as Popover from "$lib/components/ui/popover";
+	import * as Tooltip from "$lib/components/ui/tooltip";
 
 	let open = $state(false);
 </script>
@@ -18,7 +19,14 @@
 					aria-label="Notifications"
 					{...props}
 				>
-					<i class={cn(open ? "fa-solid" : "fa-regular", "fa-bell text-lg")}></i>
+					<Tooltip.Provider>
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								<i class={cn(open ? "fa-solid" : "fa-regular", "fa-bell text-lg")}></i>
+							</Tooltip.Trigger>
+							<Tooltip.Content>Notifications</Tooltip.Content>
+						</Tooltip.Root>
+					</Tooltip.Provider>
 				</Button>
 			{/snippet}
 		</Popover.Trigger>
