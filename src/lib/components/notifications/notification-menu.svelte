@@ -11,29 +11,29 @@
 
 <Popover.Root bind:open>
 	<Popover.Trigger>
-		{#snippet child({ props })}
-			<Button
-				variant="ghost"
-				size="icon"
-				class="rounded-lg z-20 relative"
-				aria-label="Notifications"
-				{...props}
-			>
-				<Tooltip.Provider>
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<div class="flex items-center justify-center bg-primary rounded-full w-4 h-4 absolute top-1 right-1">
-								<p class="text-[10px] text-primary-foreground">7</p>
-							</div>
-							<i class={cn(open ? "fa-solid" : "fa-regular", "fa-bell text-lg")}></i>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							Notifications
-						</Tooltip.Content>
-					</Tooltip.Root>
-				</Tooltip.Provider>
-			</Button>
-		{/snippet}
+		<Tooltip.Provider>
+			<Tooltip.Root>
+				<Tooltip.Trigger>
+						{#snippet child({ props })}
+							<Button
+								variant="ghost"
+								size="icon"
+								class="rounded-lg z-20 relative"
+								aria-label="Notifications"
+								{...props}
+							>
+								<div class="flex items-center justify-center bg-primary rounded-full w-4 h-4 absolute top-1 right-1">
+									<p class="text-[10px] text-primary-foreground">7</p>
+								</div>
+								<i class={cn(open ? "fa-solid" : "fa-regular", "fa-bell text-lg")}></i>
+							</Button>
+						{/snippet}
+				</Tooltip.Trigger>
+				<Tooltip.Content align="end">
+					Notifications
+				</Tooltip.Content>
+			</Tooltip.Root>
+		</Tooltip.Provider>
 	</Popover.Trigger>
 	<Popover.Content class="w-80" align="end" onOpenAutoFocus={e => {
 		e.preventDefault();
