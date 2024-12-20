@@ -27,13 +27,17 @@
 							</div>
 							<i class={cn(open ? "fa-solid" : "fa-regular", "fa-bell text-lg")}></i>
 						</Tooltip.Trigger>
-						<Tooltip.Content>Notifications</Tooltip.Content>
+						<Tooltip.Content>
+							Notifications
+						</Tooltip.Content>
 					</Tooltip.Root>
 				</Tooltip.Provider>
 			</Button>
 		{/snippet}
 	</Popover.Trigger>
-	<Popover.Content class="w-80" align="end">
+	<Popover.Content class="w-80" align="end" onOpenAutoFocus={e => {
+		e.preventDefault();
+	}}>
 		<div class="flex flex-col gap-y-4">
 			<h4 class="font-medium leading-none">Notifications</h4>
 			<div class="-mx-4">
