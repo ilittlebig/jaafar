@@ -5,13 +5,14 @@
 	import { signupCommands } from "$lib/data/signups";
 	import { buttonVariants } from "$lib/components/ui/button";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-	import DeleteDialog, { deleteDialog } from "$lib/components/dialogs/delete-dialog.svelte";
+	import DeleteDialog from "$lib/components/dialogs/delete-dialog.svelte";
 
 	let { signup }: { signup: Signup } = $props();
+	let isOpen = $state(false);
 
 	const handleDeleteConfirm = async () => {
 		await deleteSignup(signup.id);
-		deleteDialog.open = false;
+		isOpen = false;
 	}
 
 	const startSignup = async () => {
@@ -22,6 +23,14 @@
 		});
 	}
 </script>
+
+<DeleteDialog
+	title="Delete Signup"
+	description="Are you sure you want to delete this signup? This action is irreversible."
+	actionLabel="Delete Signup"
+	onconfirm={handleDeleteConfirm}
+	bind:open={isOpen}
+/>
 
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger
@@ -43,15 +52,6 @@
 			<DropdownMenu.Item>View info</DropdownMenu.Item>
 		{/if}
 		<DropdownMenu.Separator />
-		<DeleteDialog
-			title={`Delete Signup`}
-			description="Are you sure you want to delete this signup? This action is irreversible."
-			actionLabel="Delete Signup"
-			onconfirm={handleDeleteConfirm}
-		>
-			{#snippet children({ props })}
-				<DropdownMenu.Item {...props}>Delete</DropdownMenu.Item>
-			{/snippet}
-		</DeleteDialog>
+		<DropdownMenu.Item onclick={() => isOpen = true}>Delete</DropdownMenu.Item>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
