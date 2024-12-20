@@ -3,15 +3,24 @@
 	import { deleteProxyGroup } from "$lib/services/proxies-service";
 	import { buttonVariants } from "$lib/components/ui/button";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-	import DeleteDialog, { deleteDialog } from "$lib/components/dialogs/delete-dialog.svelte";
+	import DeleteDialog from "$lib/components/dialogs/delete-dialog.svelte";
 
 	let { proxyGroup }: { proxyGroup: ProxyGroup } = $props();
+	let isOpen = $state(false);
 
 	const handleDeleteConfirm = async () => {
 		await deleteProxyGroup(proxyGroup.name);
-		deleteDialog.open = false;
+		isOpen = false;
 	}
 </script>
+
+<DeleteDialog
+	title={`Delete ${proxyGroup.name}`}
+	description="Are you sure you want to delete this proxy group? This action is irreversible."
+	actionLabel="Delete Group"
+	onconfirm={handleDeleteConfirm}
+	bind:open={isOpen}
+/>
 
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger
@@ -28,15 +37,6 @@
 		<DropdownMenu.Item>Edit</DropdownMenu.Item>
 		<DropdownMenu.Item>View proxies</DropdownMenu.Item>
 		<DropdownMenu.Separator />
-		<DeleteDialog
-			title={`Delete ${proxyGroup.name}`}
-			description="Are you sure you want to delete this proxy group? This action is irreversible."
-			actionLabel="Delete Group"
-			onconfirm={handleDeleteConfirm}
-		>
-			{#snippet children({ props })}
-				<DropdownMenu.Item {...props}>Delete</DropdownMenu.Item>
-			{/snippet}
-		</DeleteDialog>
+		<DropdownMenu.Item onclick={() => isOpen = true}>Delete</DropdownMenu.Item>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
