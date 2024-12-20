@@ -1,9 +1,4 @@
-<script module>
-	export let deleteDialog = $state({ open: false });
-</script>
-
 <script lang="ts">
-	import type { Snippet } from "svelte";
 	import { buttonVariants } from "$lib/components/ui/button";
 	import * as AlertDialog from "$lib/components/ui/alert-dialog";
   import * as Alert from "$lib/components/ui/alert";
@@ -14,16 +9,16 @@
 		title: string;
 		description: string;
 		actionLabel: string;
-		children: Snippet<[{ props: Record<string, unknown> }]>,
 		onconfirm: () => Promise<any>;
+		open: boolean;
 	}
 
 	let {
 		title,
 		description,
 		actionLabel,
-		children,
 		onconfirm,
+		open = $bindable(),
 	}: Props = $props();
 
 	const handleConfirm = async () => {
@@ -34,18 +29,13 @@
 		}
 	}
 
-	const onOpenChange = (open: boolean) => {
-		if (!open) return;
+	const onOpenChange = (newState: boolean) => {
+		if (!newState) return;
 		error = undefined;
 	}
 </script>
 
-<AlertDialog.Root bind:open={deleteDialog.open} {onOpenChange}>
-	<AlertDialog.Trigger>
-		{#snippet child({ props })}
-			{@render children({ props })}
-		{/snippet}
-  </AlertDialog.Trigger>
+<AlertDialog.Root bind:open {onOpenChange}>
 	<AlertDialog.Content class="max-w-[425px]">
 		<AlertDialog.Header>
 			<AlertDialog.Title>{title}</AlertDialog.Title>
